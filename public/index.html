@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Class Scripts</title>
+  <meta name="description" content="Scripts e ferramentas para otimizar sua experiência na Sala do Futuro." />
+  <meta name="theme-color" content="#050505" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14 16L10 20L14 24' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M34 32L38 28L34 24' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M28 14L20 34' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="halloween-deco"></div>
+
+  <div id="maintenance-screen" class="hidden">
+    <div class="maintenance-inner">
+      <div class="maintenance-icon">
+        <i class="fas fa-wrench"></i>
+      </div>
+      <h1>Em Manutenção</h1>
+      <p id="maintenance-msg">O site está passando por manutenção. Voltamos em breve!</p>
+      <div class="maintenance-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+
+    <div id="preloader">
+      <svg width="64" height="64" viewBox="0 0 48 48" fill="none">
+        <path d="M14 16L10 20L14 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M34 32L38 28L34 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M28 14L20 34" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <div class="preloader-bar"><span></span></div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div id="alert-banner" class="hidden">
+      <div class="alert-content">
+        <i class="fas fa-bell"></i>
+        <span id="alert-text"></span>
+        <button id="alert-close"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+
+    <header id="header">
+      <div class="container nav-container">
+        <a href="#" class="logo">
+          <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+            <path d="M14 16L10 20L14 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M34 32L38 28L34 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M28 14L20 34" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <span>Class<em>Scripts</em></span>
+        </a>
+        <nav class="nav-links">
+          <a href="#scripts">Scripts</a>
+          <a href="#founders">Equipe</a>
+          <a href="#sobre">Sobre</a>
+          <a href="https://discord.gg/platformdestroyer" target="_blank" class="nav-discord"><i class="fab fa-discord"></i> Discord</a>
+        </nav>
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+      <div class="mobile-nav" id="mobile-nav">
+        <a href="#scripts" class="mobile-link">Scripts</a>
+        <a href="#founders" class="mobile-link">Equipe</a>
+        <a href="#sobre" class="mobile-link">Sobre mim</a>
+        <a href="https://discord.gg/platformdestroyer" target="_blank" class="mobile-link">Discord</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="hero">
+        <div class="hero-bg">
+          <div class="grid-overlay"></div>
+          <div class="glow glow-1"></div>
+          <div class="glow glow-2"></div>
+        </div>
+        <div class="container hero-content">
+          <div class="hero-badge reveal">
+            <span class="badge-dot"></span>
+            <span>Ferramentas Educacionais</span>
+          </div>
+          <h1 class="hero-title reveal">
+            <span id="typed-text"></span><span class="cursor">|</span>
+          </h1>
+          <p class="hero-subtitle reveal">Otimize sua experiência na <strong>Sala do Futuro</strong> com scripts poderosos e gratuitos.</p>
+
+          <div class="countdown-wrapper reveal">
+            <p class="countdown-label">Fim das aulas em 2026</p>
+            <div class="countdown-grid">
+              <div class="cd-item"><span id="cd-days">00</span><label>dias</label></div>
+              <div class="cd-sep">:</div>
+              <div class="cd-item"><span id="cd-hours">00</span><label>horas</label></div>
+              <div class="cd-sep">:</div>
+              <div class="cd-item"><span id="cd-minutes">00</span><label>min</label></div>
+              <div class="cd-sep">:</div>
+              <div class="cd-item"><span id="cd-seconds">00</span><label>seg</label></div>
+            </div>
+          </div>
+
+          <div class="hero-cta reveal">
+            <a href="#scripts" class="btn-primary">
+              <i class="fas fa-code"></i> Ver Scripts
+            </a>
+            <a href="https://discord.gg/platformdestroyer" target="_blank" class="btn-ghost">
+              <i class="fab fa-discord"></i> Comunidade
+            </a>
+          </div>
+        </div>
+        <div class="scroll-indicator">
+          <span></span>
+        </div>
+      </section>
+
+      <section id="avisos" class="section-announcements">
+        <div class="container">
+          <div class="section-header reveal">
+            <span class="section-tag">Mural</span>
+            <h2 class="section-title">Avisos</h2>
+          </div>
+          <div id="avisos-grid" class="avisos-grid"></div>
+        </div>
+      </section>
+
+      <section id="scripts" class="section-scripts">
+        <div class="container">
+          <div class="section-header reveal">
+            <span class="section-tag">Ferramentas</span>
+            <h2 class="section-title">Scripts Disponíveis</h2>
+          </div>
+          <div id="scripts-grid" class="scripts-grid"></div>
+        </div>
+      </section>
+
+      <section id="founders" class="section-founders">
+        <div class="container">
+          <div class="section-header reveal">
+            <span class="section-tag">Time</span>
+            <h2 class="section-title">Fundadores & Desenvolvedores</h2>
+          </div>
+          <div id="founders-grid" class="founders-grid"></div>
+        </div>
+      </section>
+    </main>
+
+
+      <section id="sobre" class="section-sobre">
+        <div class="container">
+          <div class="section-header reveal">
+            <span class="section-tag">Desenvolvedor</span>
+            <h2 class="section-title">Sobre mim</h2>
+          </div>
+          <div class="sobre-card reveal">
+            <div class="sobre-avatar-col">
+              <div class="sobre-avatar-wrap">
+                <img src="eu.png" alt="eri10pc" class="sobre-avatar" />
+                <div class="sobre-avatar-ring"></div>
+              </div>
+              <p class="sobre-handle">@eri10pc</p>
+              <div class="sobre-social-links">
+                <a href="https://discordapp.com/users/730899087825829888" target="_blank" class="sobre-social discord">
+                  <i class="fab fa-discord"></i>
+                </a>
+                <a href="https://www.instagram.com/eri10pc/" target="_blank" class="sobre-social instagram">
+                  <i class="fab fa-instagram"></i>
+                </a>
+              </div>
+            </div>
+            <div class="sobre-content">
+              <div class="sobre-badges">
+                <span class="sobre-badge"><i class="fas fa-code"></i> Programador</span>
+                <span class="sobre-badge"><i class="fas fa-calendar"></i> 3 anos de exp.</span>
+                <span class="sobre-badge"><i class="fas fa-user"></i> 16 anos</span>
+              </div>
+              <p class="sobre-bio">
+                Sou programador há <strong>3 anos</strong>, com <strong>16 anos</strong>, focado em desenvolver soluções eficientes através da tecnologia. Tenho interesse especial em <strong>automação de tarefas</strong> e <strong>produtividade</strong>, buscando sempre criar sistemas que otimizem processos e facilitem o dia a dia. Com ajuda do meu braço direito <a href="https://claude.ai" target="_blank" class="sobre-link">Claude.ai</a>. Admiro muito os desenvolvedores que criam scripts para <strong>facilitar a vida dos estudantes</strong> — acredito que tecnologia bem aplicada pode transformar a experiência de quem está aprendendo.
+              </p>
+              <blockquote class="sobre-quote">
+                <i class="fas fa-quote-left sobre-quote-icon"></i>
+                <p>"Cada tarefa que você automatiza é tempo que você recupera para investir em algo maior."</p>
+                <cite>— eri10pc</cite>
+              </blockquote>
+              <div class="sobre-stats">
+                <div class="sobre-stat">
+                  <span class="sobre-stat-num">3+</span>
+                  <span class="sobre-stat-label">anos codando</span>
+                </div>
+                <div class="sobre-stat">
+                  <span class="sobre-stat-num">16</span>
+                  <span class="sobre-stat-label">anos de idade</span>
+                </div>
+                <div class="sobre-stat">
+                  <span class="sobre-stat-num">∞</span>
+                  <span class="sobre-stat-label">café consumido</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    <footer>
+      <div class="container footer-inner">
+        <div class="footer-logo">
+          <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+            <path d="M14 16L10 20L14 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M34 32L38 28L34 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M28 14L20 34" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <span>ClassScripts</span>
+        </div>
+        <p class="footer-copy">Feito com <i class="fas fa-heart" style="color:#f9e800"></i> por <strong>eri10pc</strong></p>
+        <div class="footer-socials">
+          <a href="https://discordapp.com/users/730899087825829888" target="_blank" class="footer-social-btn discord">
+            <i class="fab fa-discord"></i> Discord
+          </a>
+          <a href="https://www.instagram.com/eri10pc/" target="_blank" class="footer-social-btn instagram">
+            <i class="fab fa-instagram"></i> Instagram
+          </a>
+        </div>
+        <p class="footer-sub">© 2024 ClassScripts. Todos os direitos reservados.</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <div id="modal-backdrop" class="hidden">
+    <div class="modal-box" id="modal-box">
+      <button class="modal-close" id="modal-close"><i class="fas fa-times"></i></button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

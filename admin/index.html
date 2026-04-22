@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — ClassScripts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+          <path d="M14 16L10 20L14 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M34 32L38 28L34 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M28 14L20 34" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1>Admin Panel</h1>
+      <p>ClassScripts — Acesso restrito</p>
+      <div class="input-group">
+        <i class="fas fa-envelope"></i>
+        <input type="email" id="login-email" placeholder="E-mail" autocomplete="email" />
+      </div>
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="login-password" placeholder="Senha" autocomplete="current-password" />
+      </div>
+      <button id="login-btn" class="login-btn"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+      <p id="login-error" class="login-error hidden"></p>
+    </div>
+  </div>
+
+  <div id="admin-app" class="hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
+          <path d="M14 16L10 20L14 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M34 32L38 28L34 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M28 14L20 34" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <span>CS Admin</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="scripts"><i class="fas fa-code"></i><span>Scripts</span></button>
+        <button class="nav-item" data-tab="avisos"><i class="fas fa-bell"></i><span>Avisos</span></button>
+        <button class="nav-item" data-tab="alerta"><i class="fas fa-bullhorn"></i><span>Alerta Global</span></button>
+        <button class="nav-item" data-tab="founders"><i class="fas fa-users"></i><span>Fundadores</span></button>
+        <button class="nav-item" data-tab="maintenance"><i class="fas fa-wrench"></i><span>Manutenção</span></button>
+        <button class="nav-item" data-tab="tema"><i class="fas fa-palette"></i><span>Tema do Site</span></button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <button class="sidebar-toggle" id="sidebar-toggle"><i class="fas fa-bars"></i></button>
+        <div class="topbar-title" id="topbar-title">Scripts</div>
+        <div class="topbar-user">
+          <span id="admin-email"></span>
+          <a href="../public/index.html" target="_blank" class="view-site-btn">
+            <i class="fas fa-external-link-alt"></i> Ver Site
+          </a>
+        </div>
+      </header>
+
+      <div id="toast-admin"></div>
+
+      <div class="content">
+
+        <div class="tab-panel active" id="tab-scripts">
+          <div class="panel-header">
+            <h2>Gerenciar Scripts</h2>
+            <button class="btn-add" id="add-script-btn"><i class="fas fa-plus"></i> Novo Script</button>
+          </div>
+          <div id="scripts-list" class="admin-list"></div>
+        </div>
+
+        <div class="tab-panel" id="tab-avisos">
+          <div class="panel-header">
+            <h2>Mural de Avisos</h2>
+            <button class="btn-add" id="add-aviso-btn"><i class="fas fa-plus"></i> Novo Aviso</button>
+          </div>
+          <div id="avisos-list" class="admin-list"></div>
+        </div>
+
+        <div class="tab-panel" id="tab-alerta">
+          <div class="panel-header">
+            <h2>Alerta Global</h2>
+          </div>
+          <div class="card-form">
+            <p class="form-desc">Esse alerta aparece no topo do site para todos os visitantes em tempo real.</p>
+            <div class="form-group">
+              <label>Mensagem do Alerta</label>
+              <input type="text" id="alerta-text" placeholder="Ex: Novo script disponível!" />
+            </div>
+            <div class="toggle-row">
+              <span>Alerta ativo</span>
+              <label class="toggle">
+                <input type="checkbox" id="alerta-active" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <button class="btn-save" id="save-alerta-btn"><i class="fas fa-save"></i> Salvar Alerta</button>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-founders">
+          <div class="panel-header">
+            <h2>Fundadores</h2>
+            <button class="btn-add" id="add-founder-btn"><i class="fas fa-plus"></i> Novo Fundador</button>
+          </div>
+          <div id="founders-list" class="admin-list"></div>
+        </div>
+
+        <div class="tab-panel" id="tab-tema">
+          <div class="panel-header">
+            <h2>Tema do Site</h2>
+          </div>
+          <div class="card-form">
+            <p class="form-desc">Escolha a aparência do site público. O Halloween ativa morcegos voando e cores laranja/escuro.</p>
+            <div class="tema-options" id="tema-options">
+              <button class="tema-btn" data-tema="default">
+                <span class="tema-preview default-preview"></span>
+                <span class="tema-label">Padrão (Roxo)</span>
+              </button>
+              <button class="tema-btn" data-tema="halloween">
+                <span class="tema-preview halloween-preview"></span>
+                <span class="tema-label">🎃 Halloween</span>
+              </button>
+            </div>
+            <p class="tema-current">Tema atual: <strong id="tema-current-name">carregando...</strong></p>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-maintenance">
+          <div class="panel-header">
+            <h2>Modo Manutenção</h2>
+          </div>
+          <div class="card-form maintenance-card">
+            <div class="maintenance-status-indicator" id="maint-indicator">
+              <i class="fas fa-circle"></i>
+              <span id="maint-status-text">Verificando...</span>
+            </div>
+            <p class="form-desc">Quando ativado, todos os visitantes verão a tela de manutenção.</p>
+            <div class="form-group">
+              <label>Mensagem para visitantes</label>
+              <textarea id="maint-message" rows="3" placeholder="O site está em manutenção. Voltamos em breve!"></textarea>
+            </div>
+            <div class="toggle-row big">
+              <span>Ativar Manutenção</span>
+              <label class="toggle large">
+                <input type="checkbox" id="maint-active" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <button class="btn-save danger" id="save-maint-btn"><i class="fas fa-wrench"></i> Salvar Configuração</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-modal-backdrop" class="hidden">
+    <div class="admin-modal" id="admin-modal">
+      <div class="admin-modal-header">
+        <h3 id="admin-modal-title">Formulário</h3>
+        <button id="admin-modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="admin-modal-body"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
