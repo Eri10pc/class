@@ -1,4 +1,5 @@
 (function() {
+  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) return;
   const NEKO_SIZE = 32;
   const SPEED = 3;
   const SPRITE_PATH = 'neko/';
