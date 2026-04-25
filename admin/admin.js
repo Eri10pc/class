@@ -42,6 +42,83 @@ function normStatus(s) {
   return r.includes('manu') ? 'manutencao' : r === 'offline' ? 'offline' : 'ativo';
 }
 
+
+function renderGabaritosList(gabaritos) {
+  const container = document.getElementById('gabaritos-list');
+  if (!container) return;
+  if (!gabaritos || !Object.keys(gabaritos).length) {
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-file-alt"></i>Nenhum gabarito cadastrado.</div>`;
+    return;
+  }
+  const sorted = Object.entries(gabaritos).sort((a,b) => (b[1].timestamp||0) - (a[1].timestamp||0));
+  container.innerHTML = sorted.map(([key, g]) => {
+    const date = g.timestamp ? new Date(g.timestamp).toLocaleDateString('pt-BR') : '';
+    return `
+    <div class="admin-item">
+      ${g.imagem ? `<img src="${g.imagem}" style="width:52px;height:40px;border-radius:6px;object-fit:cover;border:1px solid var(--border);flex-shrink:0" onerror="this.style.display='none'">` : ''}
+      <div class="admin-item-info">
+        <div class="admin-item-name">${g.titulo || 'Sem título'}</div>
+        <div class="admin-item-sub">${g.materia ? g.materia + ' · ' : ''}${date}</div>
+      </div>
+      <div class="admin-item-actions">
+        <button class="btn-icon" onclick="editGabarito('${key}')" title="Editar"><i class="fas fa-pen"></i></button>
+        <button class="btn-icon danger" onclick="deleteItem('gabaritos','${key}')" title="Deletar"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function gabaritoFormHTML(data = {}) {
+  return `
+    <div class="form-group"><label>Título</label>
+      <input type="text" id="f-gtitulo" placeholder="Ex: Gabarito - Matemática P1" value="${data.titulo || ''}" /></div>
+    <div class="form-group"><label>Matéria</label>
+      <input type="text" id="f-gmateria" placeholder="Ex: Matemática, Português..." value="${data.materia || ''}" /></div>
+    <div class="form-group"><label>Descrição</label>
+      <textarea id="f-gdesc" rows="3" placeholder="Detalhes sobre o gabarito...">${data.descricao || ''}</textarea></div>
+    <div class="form-group"><label>Imagem (URL)</label>
+      <input type="url" id="f-gimagem" placeholder="https://..." value="${data.imagem || ''}" />
+      <p style="font-size:11px;color:var(--text-muted);margin-top:6px">URL direta da imagem do gabarito</p></div>
+    <div id="gab-img-preview-wrap" style="text-align:center;margin-bottom:16px;display:${data.imagem ? 'block' : 'none'}">
+      <img id="gab-img-preview" src="${data.imagem || ''}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;border:1px solid var(--border)" onerror="this.style.display='none'">
+    </div>
+    <div class="form-group"><label>Link (para acessar/baixar)</label>
+      <input type="url" id="f-glink" placeholder="https://..." value="${data.link || ''}" /></div>
+    <button class="btn-save" id="f-submit" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Salvar Gabarito</button>`;
+}
+
+function setupGabImagePreview() {
+  const input = document.getElementById('f-gimagem');
+  const wrap = document.getElementById('gab-img-preview-wrap');
+  const img = document.getElementById('gab-img-preview');
+  if (!input || !wrap || !img) return;
+  input.addEventListener('input', () => {
+    const url = input.value.trim();
+    if (url) { img.src = url; img.style.display = 'block'; wrap.style.display = 'block'; }
+    else { wrap.style.display = 'none'; }
+  });
+}
+
+window.editGabarito = function(key) {
+  db.ref(`gabaritos/${key}`).once('value', snap => {
+    const data = snap.val() || {};
+    openModal('Editar Gabarito', gabaritoFormHTML(data));
+    setupGabImagePreview();
+    document.getElementById('f-submit').addEventListener('click', async () => {
+      const titulo = document.getElementById('f-gtitulo').value.trim();
+      if (!titulo) { toast('Título obrigatório', 'error'); return; }
+      await db.ref(`gabaritos/${key}`).update({
+        titulo,
+        materia: document.getElementById('f-gmateria').value.trim(),
+        descricao: document.getElementById('f-gdesc').value.trim(),
+        imagem: document.getElementById('f-gimagem').value.trim(),
+        link: document.getElementById('f-glink').value.trim(),
+      });
+      toast('Gabarito atualizado!'); closeModal();
+    });
+  });
+};
+
 function renderScriptsList(scripts) {
   const container = document.getElementById('scripts-list');
   if (!container) return;
@@ -362,6 +439,24 @@ function initTabs() {
 
 function initAddButtons() {
   
+  document.getElementById('add-gabarito-btn')?.addEventListener('click', () => {
+    openModal('Novo Gabarito', gabaritoFormHTML());
+    setupGabImagePreview();
+    document.getElementById('f-submit').addEventListener('click', async () => {
+      const titulo = document.getElementById('f-gtitulo').value.trim();
+      if (!titulo) { toast('Título obrigatório', 'error'); return; }
+      await db.ref('gabaritos').push().set({
+        titulo,
+        materia: document.getElementById('f-gmateria').value.trim(),
+        descricao: document.getElementById('f-gdesc').value.trim(),
+        imagem: document.getElementById('f-gimagem').value.trim(),
+        link: document.getElementById('f-glink').value.trim(),
+        timestamp: Date.now()
+      });
+      toast('Gabarito criado!'); closeModal();
+    });
+  });
+
   document.getElementById('add-script-btn')?.addEventListener('click', () => {
     openModal('Novo Script', scriptFormHTML());
     document.getElementById('f-submit').addEventListener('click', async () => {
@@ -467,6 +562,7 @@ function initTema() {
 
 function initListeners() {
   db.ref('scripts').on('value', snap => renderScriptsList(snap.val()));
+  db.ref('gabaritos').on('value', snap => renderGabaritosList(snap.val()));
   db.ref('avisos').on('value', snap => renderAvisosList(snap.val()));
   db.ref('teams').on('value', snap => renderTeamsList(snap.val()));
 }

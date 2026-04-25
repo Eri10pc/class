@@ -341,6 +341,7 @@ async function init() {
   initAlertClose();
 
   db.ref('scripts').on('value', snap => renderScripts(snap.val()));
+  db.ref('gabaritos').on('value', snap => { window.gabaritoData = snap.val() || {}; renderGabaritos(snap.val()); });
   db.ref('avisos').on('value', snap => renderAvisos(snap.val()));
   db.ref('teams').on('value', snap => {
     const teams = snap.val();
@@ -367,7 +368,7 @@ function initCardGlowIn(container) {
     card.style.setProperty('--mouse-x', x);
     card.style.setProperty('--mouse-y', y);
   };
-  container.querySelectorAll('.script-card, .aviso-card, .founder-card').forEach(card => {
+  container.querySelectorAll('.script-card, .aviso-card, .founder-card, .gabarito-card').forEach(card => {
     if (card.dataset.glowBound) return;
     card.dataset.glowBound = '1';
     card.addEventListener('mousemove', update);
@@ -385,7 +386,7 @@ function initCardGlow() {
   };
 
   const attach = () => {
-    document.querySelectorAll('.script-card, .aviso-card, .founder-card').forEach(card => {
+    document.querySelectorAll('.script-card, .aviso-card, .founder-card, .gabarito-card').forEach(card => {
       if (card.dataset.glowBound) return;
       card.dataset.glowBound = '1';
       card.addEventListener('mousemove', update);
@@ -602,6 +603,91 @@ function initLanyard() {
 
   connectWS();
 }
+
+function renderGabaritos(gabaritos) {
+  const grid = document.getElementById('gabaritos-grid');
+  const filtersEl = document.getElementById('gabaritos-filters');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  if (!gabaritos || !Object.keys(gabaritos).length) {
+    grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;grid-column:1/-1">Nenhum gabarito disponível ainda.</p>';
+    if (filtersEl) filtersEl.innerHTML = '';
+    return;
+  }
+
+  const entries = Object.entries(gabaritos).sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+
+  const materias = [...new Set(entries.map(([,g]) => g.materia).filter(Boolean))];
+  let activeFilter = 'all';
+
+  function renderFilter() {
+    if (!filtersEl) return;
+    filtersEl.innerHTML = `
+      <button class="gab-filter-btn ${activeFilter === 'all' ? 'active' : ''}" data-materia="all">Todos</button>
+      ${materias.map(m => `<button class="gab-filter-btn ${activeFilter === m ? 'active' : ''}" data-materia="${m}">${m}</button>`).join('')}
+    `;
+    filtersEl.querySelectorAll('.gab-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeFilter = btn.dataset.materia;
+        renderFilter();
+        renderCards();
+      });
+    });
+  }
+
+  function renderCards() {
+    grid.innerHTML = '';
+    const filtered = activeFilter === 'all' ? entries : entries.filter(([,g]) => g.materia === activeFilter);
+    if (!filtered.length) {
+      grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;grid-column:1/-1">Nenhum gabarito nesta matéria.</p>';
+      return;
+    }
+    filtered.forEach(([key, g]) => {
+      const date = g.timestamp ? new Date(g.timestamp).toLocaleDateString('pt-BR') : '';
+      const card = document.createElement('div');
+      card.className = 'gabarito-card reveal';
+      card.innerHTML = `
+        ${g.imagem ? `<div class="gabarito-img-wrap"><img src="${g.imagem}" alt="${g.titulo || ''}" class="gabarito-img" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : ''}
+        <div class="gabarito-body">
+          <div class="gabarito-meta">
+            ${g.materia ? `<span class="gabarito-tag"><i class="fas fa-book"></i> ${g.materia}</span>` : ''}
+            ${date ? `<span class="gabarito-date"><i class="fas fa-calendar"></i> ${date}</span>` : ''}
+          </div>
+          <h3 class="gabarito-title">${g.titulo || 'Sem título'}</h3>
+          ${g.descricao ? `<p class="gabarito-desc">${g.descricao}</p>` : ''}
+          <div class="gabarito-actions">
+            ${g.link ? `<a href="${g.link}" target="_blank" class="gabarito-btn"><i class="fas fa-arrow-up-right-from-square"></i> Acessar</a>` : ''}
+            ${g.imagem ? `<button class="gabarito-btn ghost" onclick="openGabaritoModal('${key}')"><i class="fas fa-eye"></i> Ver imagem</button>` : ''}
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+      setTimeout(() => observeReveal(card), 50);
+    });
+    initCardGlowIn(grid);
+  }
+
+  renderFilter();
+  renderCards();
+}
+
+window.gabaritoData = {};
+
+window.openGabaritoModal = function(key) {
+  const g = window.gabaritoData[key];
+  if (!g || !g.imagem) return;
+  const content = document.getElementById('modal-content');
+  const box = document.getElementById('modal-box');
+  if (!content || !box) return;
+  content.innerHTML = `
+    <p class="modal-title">${g.titulo || 'Gabarito'}</p>
+    <img src="${g.imagem}" alt="${g.titulo || ''}" style="width:100%;border-radius:8px;margin-bottom:14px">
+    ${g.link ? `<a href="${g.link}" target="_blank" class="modal-link"><i class="fas fa-arrow-up-right-from-square"></i> Acessar link</a>` : ''}
+  `;
+  document.getElementById('modal-backdrop').classList.remove('hidden');
+};
+
 checkMaintenance();
 checkTheme();
 window.addEventListener('DOMContentLoaded', init);
