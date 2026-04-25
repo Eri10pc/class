@@ -544,34 +544,74 @@ function initLanyard() {
     offline: { label: 'Offline', color: '#6b7280' },
   };
 
+  function getImageUrl(a) {
+    const assets = a.assets;
+    if (!assets || !assets.large_image) return null;
+    const img = assets.large_image;
+    if (img.startsWith('mp:external/')) return 'https://media.discordapp.net/' + img.replace('mp:external/', '');
+    if (img.startsWith('spotify:')) return 'https://i.scdn.co/image/' + img.replace('spotify:', '');
+    return `https://cdn.discordapp.com/app-assets/${a.application_id}/${img}.png`;
+  }
+
+  function getSmallUrl(a) {
+    const assets = a.assets;
+    if (!assets || !assets.small_image) return null;
+    const img = assets.small_image;
+    if (img.startsWith('mp:external/')) return 'https://media.discordapp.net/' + img.replace('mp:external/', '');
+    return `https://cdn.discordapp.com/app-assets/${a.application_id}/${img}.png`;
+  }
+
   function applyStatus(data) {
     const s = STATUS_MAP[data.discord_status] || STATUS_MAP.offline;
     dot.style.background = s.color;
     dot.style.boxShadow = `0 0 6px ${s.color}`;
     text.textContent = s.label;
 
-    const acts = (data.activities || []).filter(a => a.type !== 4);
-    if (acts.length && activity) {
+    if (!activity) return;
+
+    const spotify = data.spotify;
+    if (spotify) {
+      const albumArt = spotify.album_art_url || '';
+      const song = spotify.song || '';
+      const artist = spotify.artist || '';
+      activity.classList.remove('hidden');
+      activity.innerHTML = `
+        <div class="discord-activity-inner spotify">
+          <div class="discord-activity-art-wrap">
+            ${albumArt ? `<img src="${albumArt}" class="discord-activity-img" alt="album" onerror="this.style.display='none'">` : ''}
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/168px-Spotify_logo_without_text.svg.png" class="discord-activity-app-icon spotify-icon" alt="Spotify">
+          </div>
+          <div class="discord-activity-info">
+            <span class="discord-activity-app-label"><i class="fas fa-music"></i> Spotify</span>
+            <span class="discord-activity-name">${song}</span>
+            <span class="discord-activity-detail">${artist}</span>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const acts = (data.activities || []).filter(a => a.type !== 4 && a.name !== 'Spotify');
+    if (acts.length) {
       const a = acts[0];
       const name = a.name || '';
-      const detail = a.details || a.state || '';
-      const assets = a.assets;
-      const imgUrl = assets && assets.large_image
-        ? assets.large_image.startsWith('mp:external')
-          ? 'https://media.discordapp.net/' + assets.large_image.replace('mp:external/', '')
-          : `https://cdn.discordapp.com/app-assets/${a.application_id}/${assets.large_image}.png`
-        : null;
-
+      const detail = a.details || '';
+      const state = a.state || '';
+      const imgUrl = getImageUrl(a);
+      const smallUrl = getSmallUrl(a);
       activity.classList.remove('hidden');
       activity.innerHTML = `
         <div class="discord-activity-inner">
-          ${imgUrl ? `<img src="${imgUrl}" class="discord-activity-img" alt="${name}" onerror="this.style.display='none'">` : ''}
+          <div class="discord-activity-art-wrap">
+            ${imgUrl ? `<img src="${imgUrl}" class="discord-activity-img" alt="${name}" onerror="this.style.display='none'">` : ''}
+            ${smallUrl ? `<img src="${smallUrl}" class="discord-activity-app-icon" alt="${name}" onerror="this.style.display='none'">` : ''}
+          </div>
           <div class="discord-activity-info">
-            <span class="discord-activity-name">${name}</span>
-            ${detail ? `<span class="discord-activity-detail">${detail}</span>` : ''}
+            <span class="discord-activity-app-label"><i class="fas fa-gamepad"></i> ${name}</span>
+            ${detail ? `<span class="discord-activity-name">${detail}</span>` : ''}
+            ${state ? `<span class="discord-activity-detail">${state}</span>` : ''}
           </div>
         </div>`;
-    } else if (activity) {
+    } else {
       activity.classList.add('hidden');
       activity.innerHTML = '';
     }

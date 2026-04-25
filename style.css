@@ -458,6 +458,13 @@ body.halloween .team-tab-link:hover { color: #ff6a00; background: rgba(255,106,0
 .discord-activity {
   width: 100%;
   max-width: 160px;
+  position: relative;
+  z-index: 10;
+  transition: max-width var(--transition);
+}
+
+.discord-activity:hover {
+  max-width: 260px;
 }
 
 .discord-activity-inner {
@@ -468,14 +475,14 @@ body.halloween .team-tab-link:hover { color: #ff6a00; background: rgba(255,106,0
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
+  transition: border-color var(--transition), box-shadow var(--transition), width var(--transition);
+  overflow: hidden;
+  width: 100%;
 }
 
-.discord-activity-img {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  object-fit: cover;
-  flex-shrink: 0;
+.discord-activity:hover .discord-activity-inner {
+  border-color: var(--border-hover);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 
 .discord-activity-info {
@@ -483,6 +490,7 @@ body.halloween .team-tab-link:hover { color: #ff6a00; background: rgba(255,106,0
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
 .discord-activity-name {
@@ -492,6 +500,14 @@ body.halloween .team-tab-link:hover { color: #ff6a00; background: rgba(255,106,0
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: all var(--transition);
+}
+
+.discord-activity:hover .discord-activity-name,
+.discord-activity:hover .discord-activity-detail {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
 }
 
 .discord-activity-detail {
@@ -501,6 +517,7 @@ body.halloween .team-tab-link:hover { color: #ff6a00; background: rgba(255,106,0
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: var(--font-mono);
+  transition: all var(--transition);
 }
 
 body.halloween .discord-status-badge { border-color: rgba(255,100,0,0.2); }
@@ -733,4 +750,50 @@ body.halloween .gabarito-card:hover { box-shadow: 0 14px 40px rgba(255,60,0,0.12
 @media (max-width: 768px) {
   .gabaritos-page { padding-top: 80px; padding-bottom: 60px; }
   .gab-page-title { font-size: clamp(1.8rem, 9vw, 2.8rem); }
+}
+
+.discord-activity-art-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+
+.discord-activity-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+
+.discord-activity-app-icon {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-2);
+  object-fit: cover;
+  background: #000;
+}
+
+.spotify-icon {
+  background: #1DB954;
+  padding: 2px;
+}
+
+.discord-activity-app-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.discord-activity-inner.spotify {
+  border-color: rgba(29,185,84,0.2);
+  background: rgba(29,185,84,0.04);
 }
