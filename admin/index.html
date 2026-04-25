@@ -45,16 +45,14 @@
         </svg>
         <span>CS Admin</span>
       </div>
-
       <nav class="sidebar-nav">
         <button class="nav-item active" data-tab="scripts"><i class="fas fa-code"></i><span>Scripts</span></button>
         <button class="nav-item" data-tab="avisos"><i class="fas fa-bell"></i><span>Avisos</span></button>
         <button class="nav-item" data-tab="alerta"><i class="fas fa-bullhorn"></i><span>Alerta Global</span></button>
-        <button class="nav-item" data-tab="founders"><i class="fas fa-users"></i><span>Fundadores</span></button>
+        <button class="nav-item" data-tab="teams"><i class="fas fa-layer-group"></i><span>Equipes</span></button>
         <button class="nav-item" data-tab="maintenance"><i class="fas fa-wrench"></i><span>Manutenção</span></button>
         <button class="nav-item" data-tab="tema"><i class="fas fa-palette"></i><span>Tema do Site</span></button>
       </nav>
-
       <div class="sidebar-bottom">
         <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
       </div>
@@ -66,9 +64,7 @@
         <div class="topbar-title" id="topbar-title">Scripts</div>
         <div class="topbar-user">
           <span id="admin-email"></span>
-          <a href="/" target="_blank" class="view-site-btn">
-            <i class="fas fa-external-link-alt"></i> Ver Site
-          </a>
+          <a href="/" target="_blank" class="view-site-btn"><i class="fas fa-external-link-alt"></i> Ver Site</a>
         </div>
       </header>
 
@@ -76,6 +72,7 @@
 
       <div class="content">
 
+        
         <div class="tab-panel active" id="tab-scripts">
           <div class="panel-header">
             <h2>Gerenciar Scripts</h2>
@@ -84,6 +81,7 @@
           <div id="scripts-list" class="admin-list"></div>
         </div>
 
+        
         <div class="tab-panel" id="tab-avisos">
           <div class="panel-header">
             <h2>Mural de Avisos</h2>
@@ -92,10 +90,9 @@
           <div id="avisos-list" class="admin-list"></div>
         </div>
 
+        
         <div class="tab-panel" id="tab-alerta">
-          <div class="panel-header">
-            <h2>Alerta Global</h2>
-          </div>
+          <div class="panel-header"><h2>Alerta Global</h2></div>
           <div class="card-form">
             <p class="form-desc">Esse alerta aparece no topo do site para todos os visitantes em tempo real.</p>
             <div class="form-group">
@@ -104,27 +101,48 @@
             </div>
             <div class="toggle-row">
               <span>Alerta ativo</span>
-              <label class="toggle">
-                <input type="checkbox" id="alerta-active" />
-                <span class="slider"></span>
-              </label>
+              <label class="toggle"><input type="checkbox" id="alerta-active" /><span class="slider"></span></label>
             </div>
             <button class="btn-save" id="save-alerta-btn"><i class="fas fa-save"></i> Salvar Alerta</button>
           </div>
         </div>
 
-        <div class="tab-panel" id="tab-founders">
+        
+        <div class="tab-panel" id="tab-teams">
           <div class="panel-header">
-            <h2>Fundadores</h2>
-            <button class="btn-add" id="add-founder-btn"><i class="fas fa-plus"></i> Novo Fundador</button>
+            <h2>Equipes & Servidores</h2>
+            <button class="btn-add" id="add-team-btn"><i class="fas fa-plus"></i> Nova Equipe</button>
           </div>
-          <div id="founders-list" class="admin-list"></div>
+          <p class="teams-hint"><i class="fas fa-info-circle"></i> Cada equipe vira uma aba no site. Use <strong>+ membro</strong> para adicionar pessoas a uma equipe.</p>
+          <div id="teams-list" class="admin-list teams-admin-list"></div>
+        </div>
+        <div id="founders-list" class="admin-list"></div>
         </div>
 
-        <div class="tab-panel" id="tab-tema">
-          <div class="panel-header">
-            <h2>Tema do Site</h2>
+        
+        <div class="tab-panel" id="tab-maintenance">
+          <div class="panel-header"><h2>Modo Manutenção</h2></div>
+          <div class="card-form maintenance-card">
+            <div class="maintenance-status-indicator" id="maint-indicator">
+              <i class="fas fa-circle"></i>
+              <span id="maint-status-text">Verificando...</span>
+            </div>
+            <p class="form-desc">Quando ativado, todos os visitantes verão a tela de manutenção.</p>
+            <div class="form-group">
+              <label>Mensagem para visitantes</label>
+              <textarea id="maint-message" rows="3" placeholder="O site está em manutenção. Voltamos em breve!"></textarea>
+            </div>
+            <div class="toggle-row big">
+              <span>Ativar Manutenção</span>
+              <label class="toggle large"><input type="checkbox" id="maint-active" /><span class="slider"></span></label>
+            </div>
+            <button class="btn-save danger" id="save-maint-btn"><i class="fas fa-wrench"></i> Salvar Configuração</button>
           </div>
+        </div>
+
+        
+        <div class="tab-panel" id="tab-tema">
+          <div class="panel-header"><h2>Tema do Site</h2></div>
           <div class="card-form">
             <p class="form-desc">Escolha a aparência do site público. O Halloween ativa morcegos voando e cores laranja/escuro.</p>
             <div class="tema-options" id="tema-options">
@@ -138,31 +156,6 @@
               </button>
             </div>
             <p class="tema-current">Tema atual: <strong id="tema-current-name">carregando...</strong></p>
-          </div>
-        </div>
-
-        <div class="tab-panel" id="tab-maintenance">
-          <div class="panel-header">
-            <h2>Modo Manutenção</h2>
-          </div>
-          <div class="card-form maintenance-card">
-            <div class="maintenance-status-indicator" id="maint-indicator">
-              <i class="fas fa-circle"></i>
-              <span id="maint-status-text">Verificando...</span>
-            </div>
-            <p class="form-desc">Quando ativado, todos os visitantes verão a tela de manutenção.</p>
-            <div class="form-group">
-              <label>Mensagem para visitantes</label>
-              <textarea id="maint-message" rows="3" placeholder="O site está em manutenção. Voltamos em breve!"></textarea>
-            </div>
-            <div class="toggle-row big">
-              <span>Ativar Manutenção</span>
-              <label class="toggle large">
-                <input type="checkbox" id="maint-active" />
-                <span class="slider"></span>
-              </label>
-            </div>
-            <button class="btn-save danger" id="save-maint-btn"><i class="fas fa-wrench"></i> Salvar Configuração</button>
           </div>
         </div>
 

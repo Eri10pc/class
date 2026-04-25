@@ -135,7 +135,109 @@ function renderAvisos(avisos) {
   });
 }
 
+let teamsData = {};
+let activeTeamKey = null;
+
+function renderTeams(teams) {
+  teamsData = teams || {};
+  const tabsEl = document.getElementById('teams-tabs');
+  const panelEl = document.getElementById('teams-panel');
+  if (!tabsEl || !panelEl) return;
+
+  tabsEl.innerHTML = '';
+  panelEl.innerHTML = '';
+
+  const keys = Object.keys(teamsData);
+
+  if (!keys.length) {
+    panelEl.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;">Nenhuma equipe cadastrada ainda.</p>';
+    return;
+  }
+
+  // Ordena por campo "order" se existir
+  const sorted = keys.sort((a, b) => {
+    const oa = teamsData[a].order ?? 999;
+    const ob = teamsData[b].order ?? 999;
+    return oa - ob;
+  });
+
+  sorted.forEach((key, idx) => {
+    const team = teamsData[key];
+    const isFirst = idx === 0;
+
+    
+    const tab = document.createElement('button');
+    tab.className = 'team-tab' + (isFirst ? ' active' : '');
+    tab.dataset.key = key;
+    tab.innerHTML = `
+      ${team.icon ? `<img src="${team.icon}" class="team-tab-logo" alt="" onerror="this.style.display='none'">` : ''}
+      <span>${team.name || 'Equipe'}</span>
+      ${team.link ? `<a href="${team.link}" target="_blank" class="team-tab-link" onclick="event.stopPropagation()" title="Acessar servidor"><i class="fas fa-arrow-up-right-from-square"></i></a>` : ''}
+      <span class="team-tab-count">${team.members ? Object.keys(team.members).length : 0}</span>
+    `;
+    tab.addEventListener('click', () => switchTeamTab(key));
+    tabsEl.appendChild(tab);
+
+    
+    const panel = document.createElement('div');
+    panel.className = 'team-panel' + (isFirst ? ' active' : '');
+    panel.dataset.key = key;
+    panel.innerHTML = buildTeamPanel(team);
+    panelEl.appendChild(panel);
+
+    if (isFirst) activeTeamKey = key;
+  });
+
+  
+  setTimeout(() => {
+    panelEl.querySelectorAll('.reveal').forEach(el => observeReveal(el));
+    initCardGlowIn(panelEl);
+  }, 60);
+}
+
+function switchTeamTab(key) {
+  if (activeTeamKey === key) return;
+  activeTeamKey = key;
+
+  document.querySelectorAll('.team-tab').forEach(t => t.classList.toggle('active', t.dataset.key === key));
+
+  const panels = document.querySelectorAll('.team-panel');
+  panels.forEach(p => {
+    if (p.dataset.key === key) {
+      p.classList.add('active');
+      
+      p.style.animation = 'none';
+      p.offsetHeight; 
+      p.style.animation = '';
+      setTimeout(() => {
+        p.querySelectorAll('.reveal').forEach(el => observeReveal(el));
+        initCardGlowIn(p);
+      }, 60);
+    } else {
+      p.classList.remove('active');
+    }
+  });
+}
+
+function buildTeamPanel(team) {
+  const members = team.members ? Object.values(team.members) : [];
+  if (!members.length) {
+    return '<p style="color:var(--text-muted);text-align:center;padding:30px;grid-column:1/-1">Nenhum membro nesta equipe.</p>';
+  }
+  const cards = members.map(m => `
+    <div class="founder-card reveal">
+      ${m.avatar ? `<img src="${m.avatar}" alt="${m.name || ''}" class="founder-avatar" onerror="this.style.display='none'">` : ''}
+      <p class="founder-name">${m.name || ''}</p>
+      <p class="founder-role">${m.role || 'Membro'}</p>
+    </div>
+  `).join('');
+  return `<div class="founders-grid">${cards}</div>`;
+}
+
 function renderFounders(founders) {
+  
+  if (Object.keys(teamsData).length) return;
+
   const grid = document.getElementById('founders-grid');
   if (!grid) return;
   grid.innerHTML = '';
@@ -169,6 +271,7 @@ function checkAlertBanner() {
 }
 
 function observeReveal(el) {
+  if (el.classList.contains('visible')) return;
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
   }, { threshold: 0.1 });
@@ -239,12 +342,37 @@ async function init() {
 
   db.ref('scripts').on('value', snap => renderScripts(snap.val()));
   db.ref('avisos').on('value', snap => renderAvisos(snap.val()));
-  db.ref('founders').on('value', snap => renderFounders(snap.val()));
+  db.ref('teams').on('value', snap => {
+    const teams = snap.val();
+    if (teams && Object.keys(teams).length) {
+      renderTeams(teams);
+    } else {
+      
+      db.ref('founders').once('value', s => renderFounders(s.val()));
+    }
+  });
   checkAlertBanner();
 
   setTimeout(initReveal, 200);
   initCardGlow();
 }
+
+function initCardGlowIn(container) {
+  const update = e => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1) + '%';
+    const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1) + '%';
+    card.style.setProperty('--mouse-x', x);
+    card.style.setProperty('--mouse-y', y);
+  };
+  container.querySelectorAll('.script-card, .aviso-card, .founder-card').forEach(card => {
+    if (card.dataset.glowBound) return;
+    card.dataset.glowBound = '1';
+    card.addEventListener('mousemove', update);
+  });
+}
+
 function initCardGlow() {
   const update = e => {
     const card = e.currentTarget;
@@ -267,8 +395,6 @@ function initCardGlow() {
   const obs = new MutationObserver(attach);
   obs.observe(document.body, { childList: true, subtree: true });
 }
-
-
 
 function applyTheme(theme) {
   document.body.classList.remove('halloween');
@@ -300,14 +426,10 @@ function buildHalloween() {
   const deco = document.getElementById('halloween-deco');
   if (!deco) return;
 
-  // ── FOG LAYERS ──
   document.body.appendChild(mkEl('div', 'hw-fog'));
   document.body.appendChild(mkEl('div', 'hw-fog-2'));
-
-  // ── MOON ──
   document.body.appendChild(mkEl('div', 'hw-moon'));
 
-  // ── SPIDER WEBS ──
   const webSVG = `<svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g stroke="rgba(200,160,255,0.7)" stroke-width="0.7">
       <line x1="0" y1="0" x2="140" y2="140"/><line x1="0" y1="0" x2="100" y2="140"/>
@@ -327,12 +449,10 @@ function buildHalloween() {
   const wTL = mkEl('div', 'hw-web hw-web-tl');
   wTL.innerHTML = webSVG;
   document.body.appendChild(wTL);
-
   const wTR = mkEl('div', 'hw-web hw-web-tr');
   wTR.innerHTML = webSVG;
   document.body.appendChild(wTR);
 
-  // ── BATS (SVG) ──
   const batSVG = `<svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M24 8 C22 4 14 2 8 6 C4 8 0 6 0 6 C4 10 6 12 10 12 C12 12 14 11 15 10 L24 16 L33 10 C34 11 36 12 38 12 C42 12 44 10 48 6 C48 6 44 8 40 6 C34 2 26 4 24 8Z" fill="rgba(80,0,120,0.85)"/>
     <ellipse cx="24" cy="14" rx="4" ry="5" fill="rgba(60,0,100,0.9)"/>
@@ -341,16 +461,11 @@ function buildHalloween() {
   </svg>`;
 
   const batData = [
-    { top:'8%', dur:16, delay:0, size:36 },
-    { top:'15%', dur:22, delay:5, size:28 },
-    { top:'5%', dur:19, delay:9, size:44 },
-    { top:'22%', dur:25, delay:2, size:24 },
-    { top:'12%', dur:18, delay:13, size:32 },
-    { top:'30%', dur:28, delay:7, size:20 },
-    { top:'3%', dur:14, delay:11, size:40 },
-    { top:'18%', dur:20, delay:17, size:26 },
+    { top:'8%', dur:16, delay:0, size:36 }, { top:'15%', dur:22, delay:5, size:28 },
+    { top:'5%', dur:19, delay:9, size:44 }, { top:'22%', dur:25, delay:2, size:24 },
+    { top:'12%', dur:18, delay:13, size:32 }, { top:'30%', dur:28, delay:7, size:20 },
+    { top:'3%', dur:14, delay:11, size:40 }, { top:'18%', dur:20, delay:17, size:26 },
   ];
-
   batData.forEach(b => {
     const bat = mkEl('div', 'hw-bat');
     bat.innerHTML = batSVG;
@@ -362,38 +477,23 @@ function buildHalloween() {
     deco.appendChild(bat);
   });
 
-  // ── PUMPKINS ──
-  const pumpkins = [
-    { left:'5%', size:'2rem', delay:'0s', dur:'3s' },
-    { left:'15%', size:'2.8rem', delay:'1s', dur:'4s' },
-    { left:'82%', size:'2.2rem', delay:'0.5s', dur:'3.5s' },
-    { left:'92%', size:'3rem', delay:'1.5s', dur:'5s' },
-  ];
-  pumpkins.forEach(p => {
+  [{ left:'5%', size:'2rem', delay:'0s', dur:'3s' }, { left:'15%', size:'2.8rem', delay:'1s', dur:'4s' },
+   { left:'82%', size:'2.2rem', delay:'0.5s', dur:'3.5s' }, { left:'92%', size:'3rem', delay:'1.5s', dur:'5s' }]
+  .forEach(p => {
     const el = mkEl('div', 'hw-pumpkin');
     el.textContent = '🎃';
-    el.style.left = p.left;
-    el.style.fontSize = p.size;
-    el.style.animationDelay = p.delay;
-    el.style.animationDuration = p.dur;
+    el.style.left = p.left; el.style.fontSize = p.size;
+    el.style.animationDelay = p.delay; el.style.animationDuration = p.dur;
     document.body.appendChild(el);
   });
 
-  // ── FLOATING EYES ──
-  const eyePositions = [
-    { top:'35%', left:'3%', dur:'3.5s' },
-    { top:'55%', left:'94%', dur:'4s' },
-    { top:'70%', left:'8%', dur:'3s' },
-  ];
-  eyePositions.forEach(e => {
+  [{ top:'35%', left:'3%', dur:'3.5s' }, { top:'55%', left:'94%', dur:'4s' }, { top:'70%', left:'8%', dur:'3s' }]
+  .forEach(e => {
     const el = mkEl('div', 'hw-eye');
-    el.style.top = e.top;
-    el.style.left = e.left;
-    el.style.animationDuration = e.dur;
+    el.style.top = e.top; el.style.left = e.left; el.style.animationDuration = e.dur;
     document.body.appendChild(el);
   });
 
-  // ── LIGHTNING OVERLAY ──
   const lightning = mkEl('div', 'hw-lightning');
   document.body.appendChild(lightning);
   lightningTimer = setInterval(() => {
@@ -403,12 +503,10 @@ function buildHalloween() {
     }
   }, 4000 + Math.random() * 8000);
 
-  // ── SPARKS ──
   for (let i = 0; i < 18; i++) {
     const spark = mkEl('div', 'hw-spark');
     spark.style.left = (Math.random() * 100) + 'vw';
     spark.style.bottom = (Math.random() * 20) + 'vh';
-    const xArr = ['--spark-x', '--spark-x2'];
     spark.style.setProperty('--spark-x', (Math.random() * 40 - 20) + 'px');
     spark.style.setProperty('--spark-x2', (Math.random() * 40 - 20) + 'px');
     const colors = ['#ff6a00','#ee0979','#9b00ff','#ff3300','#ffa500'];

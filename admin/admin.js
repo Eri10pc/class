@@ -14,6 +14,7 @@ const auth = firebase.auth();
 
 let currentTab = 'scripts';
 
+/* ── TOAST ── */
 function toast(msg, type = 'success') {
   const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark' };
   const colors = { success: '#10b981', error: '#ef4444' };
@@ -24,26 +25,29 @@ function toast(msg, type = 'success') {
   setTimeout(() => el.remove(), 3500);
 }
 
+/* ── MODAL ── */
 function openModal(title, bodyHTML) {
   document.getElementById('admin-modal-title').textContent = title;
   document.getElementById('admin-modal-body').innerHTML = bodyHTML;
   document.getElementById('admin-modal-backdrop').classList.remove('hidden');
 }
-
 function closeModal() {
   document.getElementById('admin-modal-backdrop').classList.add('hidden');
 }
 
+/* ── HELPERS ── */
 function statusBadge(status) {
   const map = { ativo: 'Ativo', offline: 'Offline', manutencao: 'Manutenção' };
   return `<span class="item-status ${status}">${map[status] || status}</span>`;
 }
-
 function normStatus(s) {
   const r = (s.status || 'ativo').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   return r.includes('manu') ? 'manutencao' : r === 'offline' ? 'offline' : 'ativo';
 }
 
+/* ══════════════════════════════════════════
+   SCRIPTS
+══════════════════════════════════════════ */
 function renderScriptsList(scripts) {
   const container = document.getElementById('scripts-list');
   if (!container) return;
@@ -70,6 +74,47 @@ function renderScriptsList(scripts) {
   }).join('');
 }
 
+function scriptFormHTML(data = {}) {
+  return `
+    <div class="form-group"><label>Nome do Script</label>
+      <input type="text" id="f-name" placeholder="Ex: Khan Academy Auto" value="${data.name || data.id || ''}" /></div>
+    <div class="form-group"><label>Categoria</label>
+      <input type="text" id="f-category" placeholder="Ex: Programação, Inglês..." value="${data.category || ''}" /></div>
+    <div class="form-group"><label>Descrição</label>
+      <textarea id="f-desc" rows="3" placeholder="Descrição breve do script">${data.desc || data.description || ''}</textarea></div>
+    <div class="form-group"><label>URL do Script</label>
+      <input type="url" id="f-link" placeholder="https://..." value="${data.url || data.link || ''}" /></div>
+    <div class="form-group"><label>Status</label>
+      <select id="f-status">
+        <option value="ativo" ${(!data.status || data.status.toLowerCase() === 'ativo') ? 'selected' : ''}>Ativo</option>
+        <option value="offline" ${data.status && data.status.toLowerCase() === 'offline' ? 'selected' : ''}>Offline</option>
+        <option value="manutencao" ${data.status && data.status.toLowerCase().includes('manu') ? 'selected' : ''}>Manutenção</option>
+      </select></div>
+    <button class="btn-save" id="f-submit" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Salvar</button>`;
+}
+
+window.editScript = function(key) {
+  db.ref('scripts/' + key).once('value', function(snap) {
+    const data = snap.val() || {};
+    openModal('Editar Script', scriptFormHTML(data));
+    document.getElementById('f-submit').addEventListener('click', async function() {
+      const nameVal = document.getElementById('f-name').value.trim();
+      if (!nameVal) { toast('Nome obrigatório', 'error'); return; }
+      await db.ref('scripts/' + key).update({
+        name: nameVal,
+        desc: document.getElementById('f-desc').value.trim(),
+        url: document.getElementById('f-link').value.trim(),
+        status: document.getElementById('f-status').value,
+        category: document.getElementById('f-category').value.trim()
+      });
+      toast('Script atualizado!'); closeModal();
+    });
+  });
+};
+
+/* ══════════════════════════════════════════
+   AVISOS
+══════════════════════════════════════════ */
 function renderAvisosList(avisos) {
   const container = document.getElementById('avisos-list');
   if (!container) return;
@@ -88,114 +133,17 @@ function renderAvisosList(avisos) {
         <button class="btn-icon" onclick="editAviso('${key}')" title="Editar"><i class="fas fa-pen"></i></button>
         <button class="btn-icon danger" onclick="deleteItem('avisos','${key}')" title="Deletar"><i class="fas fa-trash"></i></button>
       </div>
-    </div>
-  `).join('');
-}
-
-function renderFoundersList(founders) {
-  const container = document.getElementById('founders-list');
-  if (!container) return;
-  if (!founders || !Object.keys(founders).length) {
-    container.innerHTML = `<div class="empty-state"><i class="fas fa-users"></i>Nenhum fundador cadastrado.</div>`;
-    return;
-  }
-  container.innerHTML = Object.entries(founders).map(([key, f]) => `
-    <div class="admin-item">
-      ${f.avatar ? `<img src="${f.avatar}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0" onerror="this.style.display='none'">` : ''}
-      <div class="admin-item-info">
-        <div class="admin-item-name">${f.name || 'Sem nome'}</div>
-        <div class="admin-item-sub">${f.role || 'Fundador'}</div>
-      </div>
-      <div class="admin-item-actions">
-        <button class="btn-icon" onclick="editFounder('${key}')" title="Editar"><i class="fas fa-pen"></i></button>
-        <button class="btn-icon danger" onclick="deleteItem('founders','${key}')" title="Deletar"><i class="fas fa-trash"></i></button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function scriptFormHTML(data = {}) {
-  return `
-    <div class="form-group">
-      <label>Nome do Script</label>
-      <input type="text" id="f-name" placeholder="Ex: Khan Academy Auto" value="${data.name || data.id || ''}" />
-    </div>
-    <div class="form-group">
-      <label>Categoria</label>
-      <input type="text" id="f-category" placeholder="Ex: Programação, Inglês..." value="${data.category || ''}" />
-    </div>
-    <div class="form-group">
-      <label>Descrição</label>
-      <textarea id="f-desc" rows="3" placeholder="Descrição breve do script">${data.desc || data.description || ''}</textarea>
-    </div>
-    <div class="form-group">
-      <label>URL do Script</label>
-      <input type="url" id="f-link" placeholder="https://..." value="${data.url || data.link || ''}" />
-    </div>
-    <div class="form-group">
-      <label>Status</label>
-      <select id="f-status">
-        <option value="ativo" ${(!data.status || data.status.toLowerCase() === 'ativo') ? 'selected' : ''}>Ativo</option>
-        <option value="offline" ${data.status && data.status.toLowerCase() === 'offline' ? 'selected' : ''}>Offline</option>
-        <option value="manutencao" ${data.status && data.status.toLowerCase().includes('manu') ? 'selected' : ''}>Manutenção</option>
-      </select>
-    </div>
-    <button class="btn-save" id="f-submit" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Salvar</button>
-  `;
+    </div>`).join('');
 }
 
 function avisoFormHTML(data = {}) {
   return `
-    <div class="form-group">
-      <label>Texto do Aviso</label>
-      <textarea id="f-text" rows="4" placeholder="Digite o aviso aqui...">${data.text || ''}</textarea>
-    </div>
-    <div class="form-group">
-      <label>Autor</label>
-      <input type="text" id="f-author" placeholder="Nome do autor" value="${data.author || 'Admin'}" />
-    </div>
-    <button class="btn-save" id="f-submit" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Salvar</button>
-  `;
+    <div class="form-group"><label>Texto do Aviso</label>
+      <textarea id="f-text" rows="4" placeholder="Digite o aviso aqui...">${data.text || ''}</textarea></div>
+    <div class="form-group"><label>Autor</label>
+      <input type="text" id="f-author" placeholder="Nome do autor" value="${data.author || 'Admin'}" /></div>
+    <button class="btn-save" id="f-submit" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Salvar</button>`;
 }
-
-function founderFormHTML(data = {}) {
-  return `
-    <div class="form-group">
-      <label>Nome</label>
-      <input type="text" id="f-name" placeholder="Nome do fundador" value="${data.name || ''}" />
-    </div>
-    <div class="form-group">
-      <label>Cargo / Papel</label>
-      <input type="text" id="f-role" placeholder="Ex: Desenvolvedor" value="${data.role || ''}" />
-    </div>
-    <div class="form-group">
-      <label>URL do Avatar</label>
-      <input type="url" id="f-avatar" placeholder="https://..." value="${data.avatar || ''}" />
-    </div>
-    <button class="btn-save" id="f-submit" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Salvar</button>
-  `;
-}
-
-window.editScript = function(key) {
-  db.ref('scripts/' + key).once('value', function(snap) {
-    const data = snap.val() || {};
-    openModal('Editar Script', scriptFormHTML(data));
-    document.getElementById('f-submit').addEventListener('click', async function() {
-      const nameVal = document.getElementById('f-name').value.trim();
-      if (!nameVal) { toast('Nome obrigatório', 'error'); return; }
-      const payload = {
-        name: nameVal,
-        desc: document.getElementById('f-desc').value.trim(),
-        url: document.getElementById('f-link').value.trim(),
-        status: document.getElementById('f-status').value,
-        category: document.getElementById('f-category').value.trim()
-      };
-      await db.ref('scripts/' + key).update(payload);
-      toast('Script atualizado!');
-      closeModal();
-    });
-  });
-};
 
 window.editAviso = function(key) {
   db.ref(`avisos/${key}`).once('value', snap => {
@@ -206,30 +154,207 @@ window.editAviso = function(key) {
       const author = document.getElementById('f-author').value.trim();
       if (!text) { toast('Texto obrigatório', 'error'); return; }
       await db.ref(`avisos/${key}`).update({ text, author });
-      toast('Aviso atualizado!');
-      closeModal();
+      toast('Aviso atualizado!'); closeModal();
     });
   });
 };
 
-window.editFounder = function(key) {
-  db.ref(`founders/${key}`).once('value', snap => {
+/* ══════════════════════════════════════════
+   TEAMS — EQUIPES & MEMBROS
+══════════════════════════════════════════ */
+let teamsCache = {};
+
+function renderTeamsList(teams) {
+  teamsCache = teams || {};
+  const container = document.getElementById('teams-list');
+  if (!container) return;
+
+  if (!teams || !Object.keys(teams).length) {
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-users"></i>Nenhuma equipe cadastrada.<br><small style="margin-top:8px;display:block;opacity:.6">Clique em "+ Nova Equipe" para começar.</small></div>`;
+    return;
+  }
+
+  const sorted = Object.entries(teams).sort((a, b) => (a[1].order ?? 999) - (b[1].order ?? 999));
+
+  container.innerHTML = sorted.map(([teamKey, team]) => {
+    const memberCount = team.members ? Object.keys(team.members).length : 0;
+    const memberPreviews = team.members
+      ? Object.values(team.members).slice(0, 4).map(m =>
+          m.avatar
+            ? `<img src="${m.avatar}" title="${m.name}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--surface-3);margin-left:-6px;" onerror="this.style.display='none'">`
+            : `<div style="width:28px;height:28px;border-radius:50%;background:var(--surface-3);border:2px solid var(--surface-2);margin-left:-6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-muted)">${(m.name||'?')[0].toUpperCase()}</div>`
+        ).join('')
+      : '';
+
+    return `
+    <div class="team-admin-card">
+      <div class="team-admin-header">
+        <div class="team-admin-info">
+          ${team.icon
+            ? `<img src="${team.icon}" alt="${team.name}" class="team-admin-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+            : ''}
+          <div class="team-admin-logo-placeholder" style="display:${team.icon ? 'none' : 'flex'}"><i class="fas fa-users"></i></div>
+          <div>
+            <div class="team-admin-name">${team.name || 'Equipe sem nome'}</div>
+            <div class="team-admin-meta">${memberCount} membro${memberCount !== 1 ? 's' : ''} · ordem ${team.order ?? '—'}</div>
+          </div>
+        </div>
+        <div class="team-admin-actions">
+          <button class="btn-icon" onclick="editTeam('${teamKey}')" title="Editar equipe"><i class="fas fa-pen"></i></button>
+          <button class="btn-icon" onclick="addMember('${teamKey}')" title="Adicionar membro"><i class="fas fa-user-plus"></i></button>
+          <button class="btn-icon danger" onclick="deleteItem('teams','${teamKey}')" title="Deletar equipe"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      ${memberCount > 0 ? `
+      <div class="team-members-list">
+        ${Object.entries(team.members || {}).map(([mKey, m]) => `
+          <div class="team-member-row">
+            ${m.avatar
+              ? `<img src="${m.avatar}" alt="${m.name}" class="team-member-avatar" onerror="this.style.background='var(--surface-3)';this.src=''">`
+              : `<div class="team-member-avatar-placeholder">${(m.name||'?')[0].toUpperCase()}</div>`}
+            <div class="team-member-info">
+              <span class="team-member-name">${m.name || '—'}</span>
+              <span class="team-member-role">${m.role || 'Membro'}</span>
+            </div>
+            <div class="team-member-actions">
+              <button class="btn-icon sm" onclick="editMember('${teamKey}','${mKey}')" title="Editar"><i class="fas fa-pen"></i></button>
+              <button class="btn-icon sm danger" onclick="deleteMember('${teamKey}','${mKey}')" title="Remover"><i class="fas fa-times"></i></button>
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function teamFormHTML(data = {}) {
+  return `
+    <div class="form-group"><label>Nome da Equipe / Servidor</label>
+      <input type="text" id="f-tname" placeholder="Ex: ClassScripts, Sala do Futuro..." value="${data.name || ''}" /></div>
+    <div class="form-group"><label>Logo do Servidor (URL da imagem)</label>
+      <input type="url" id="f-ticon" placeholder="https://cdn.discordapp.com/icons/..." value="${data.icon || ''}" />
+      <p style="font-size:11px;color:var(--text-muted);margin-top:6px">Cole o link direto da imagem (Discord CDN, Imgur, etc.)</p></div>
+    <div id="team-logo-preview-wrap" style="text-align:center;margin-bottom:16px;display:${data.icon ? 'block' : 'none'}">
+      <img id="team-logo-preview" src="${data.icon || ''}" style="width:56px;height:56px;border-radius:12px;object-fit:cover;border:2px solid var(--border)" onerror="this.style.display='none'">
+    </div>
+    <div class="form-group"><label>Link do Servidor (Discord, site, etc.)</label>
+      <input type="url" id="f-tlink" placeholder="https://discord.gg/..." value="${data.link || ''}" /></div>
+    <div class="form-group"><label>Ordem das abas (número)</label>
+      <input type="number" id="f-torder" placeholder="1" value="${data.order ?? ''}" min="1" /></div>
+    <button class="btn-save" id="f-submit" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Salvar Equipe</button>`;
+}
+
+function memberFormHTML(data = {}) {
+  return `
+    <div class="form-group"><label>Nome</label>
+      <input type="text" id="f-mname" placeholder="Nome do membro" value="${data.name || ''}" /></div>
+    <div class="form-group"><label>Cargo / Papel</label>
+      <input type="text" id="f-mrole" placeholder="Ex: Fundador, Desenvolvedor..." value="${data.role || ''}" /></div>
+    <div class="form-group"><label>URL do Avatar</label>
+      <input type="url" id="f-mavatar" placeholder="https://..." value="${data.avatar || ''}" />
+      <p style="font-size:11px;color:var(--text-muted);margin-top:6px">Use links diretos de imagem (Discord CDN, Imgur, etc.)</p></div>
+    <div id="avatar-preview-wrap" style="text-align:center;margin-bottom:16px;display:${data.avatar ? 'block' : 'none'}">
+      <img id="avatar-preview" src="${data.avatar || ''}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--border)" onerror="this.style.display='none'">
+    </div>
+    <button class="btn-save" id="f-submit" style="width:100%;justify-content:center"><i class="fas fa-save"></i> Salvar Membro</button>`;
+}
+
+window.editTeam = function(key) {
+  const data = teamsCache[key] || {};
+  openModal('Editar Equipe', teamFormHTML(data));
+  setupLogoPreview();
+  document.getElementById('f-submit').addEventListener('click', async () => {
+    const name = document.getElementById('f-tname').value.trim();
+    if (!name) { toast('Nome obrigatório', 'error'); return; }
+    await db.ref(`teams/${key}`).update({
+      name,
+      icon: document.getElementById('f-ticon').value.trim(),
+      link: document.getElementById('f-tlink').value.trim(),
+      order: parseInt(document.getElementById('f-torder').value) || 1
+    });
+    toast('Equipe atualizada!'); closeModal();
+  });
+};
+
+window.addMember = function(teamKey) {
+  openModal('Novo Membro', memberFormHTML());
+  setupAvatarPreview();
+  document.getElementById('f-submit').addEventListener('click', async () => {
+    const name = document.getElementById('f-mname').value.trim();
+    if (!name) { toast('Nome obrigatório', 'error'); return; }
+    const ref = db.ref(`teams/${teamKey}/members`).push();
+    await ref.set({
+      name,
+      role: document.getElementById('f-mrole').value.trim(),
+      avatar: document.getElementById('f-mavatar').value.trim()
+    });
+    toast('Membro adicionado!'); closeModal();
+  });
+};
+
+window.editMember = function(teamKey, memberKey) {
+  db.ref(`teams/${teamKey}/members/${memberKey}`).once('value', snap => {
     const data = snap.val() || {};
-    openModal('Editar Fundador', founderFormHTML(data));
+    openModal('Editar Membro', memberFormHTML(data));
+    setupAvatarPreview();
     document.getElementById('f-submit').addEventListener('click', async () => {
-      const payload = {
-        name: document.getElementById('f-name').value.trim(),
-        role: document.getElementById('f-role').value.trim(),
-        avatar: document.getElementById('f-avatar').value.trim()
-      };
-      if (!payload.name) { toast('Nome obrigatório', 'error'); return; }
-      await db.ref(`founders/${key}`).update(payload);
-      toast('Fundador atualizado!');
-      closeModal();
+      const name = document.getElementById('f-mname').value.trim();
+      if (!name) { toast('Nome obrigatório', 'error'); return; }
+      await db.ref(`teams/${teamKey}/members/${memberKey}`).update({
+        name,
+        role: document.getElementById('f-mrole').value.trim(),
+        avatar: document.getElementById('f-mavatar').value.trim()
+      });
+      toast('Membro atualizado!'); closeModal();
     });
   });
 };
 
+window.deleteMember = function(teamKey, memberKey) {
+  if (!confirm('Remover este membro da equipe?')) return;
+  db.ref(`teams/${teamKey}/members/${memberKey}`).remove()
+    .then(() => toast('Membro removido!'))
+    .catch(() => toast('Erro ao remover', 'error'));
+};
+
+function setupLogoPreview() {
+  const input = document.getElementById('f-ticon');
+  const wrap = document.getElementById('team-logo-preview-wrap');
+  const img = document.getElementById('team-logo-preview');
+  if (!input || !wrap || !img) return;
+  input.addEventListener('input', () => {
+    const url = input.value.trim();
+    if (url) {
+      img.src = url;
+      img.style.display = 'block';
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+    }
+  });
+}
+
+function setupAvatarPreview() {
+  const input = document.getElementById('f-mavatar');
+  const wrap = document.getElementById('avatar-preview-wrap');
+  const img = document.getElementById('avatar-preview');
+  if (!input || !wrap || !img) return;
+  input.addEventListener('input', () => {
+    const url = input.value.trim();
+    if (url) {
+      img.src = url;
+      img.style.display = 'block';
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+    }
+  });
+}
+
+
+
+/* ══════════════════════════════════════════
+   GENERIC DELETE
+══════════════════════════════════════════ */
 window.deleteItem = function(collection, key) {
   if (!confirm('Tem certeza que deseja deletar este item?')) return;
   db.ref(`${collection}/${key}`).remove()
@@ -237,6 +362,9 @@ window.deleteItem = function(collection, key) {
     .catch(() => toast('Erro ao deletar', 'error'));
 };
 
+/* ══════════════════════════════════════════
+   TABS
+══════════════════════════════════════════ */
 function initTabs() {
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -247,63 +375,60 @@ function initTabs() {
       document.getElementById(`tab-${tab}`)?.classList.add('active');
       document.getElementById('topbar-title').textContent = btn.querySelector('span').textContent;
       currentTab = tab;
-
-      if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.remove('open');
-      }
+      if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
     });
   });
 }
 
+/* ══════════════════════════════════════════
+   ADD BUTTONS
+══════════════════════════════════════════ */
 function initAddButtons() {
+  /* Scripts */
   document.getElementById('add-script-btn')?.addEventListener('click', () => {
     openModal('Novo Script', scriptFormHTML());
     document.getElementById('f-submit').addEventListener('click', async () => {
-      const payload = {
-        name: document.getElementById('f-name').value.trim(),
-        desc: document.getElementById('f-desc').value.trim(),
-        url: document.getElementById('f-link').value.trim(),
-        status: document.getElementById('f-status').value,
-        category: document.getElementById('f-category').value.trim()
-      };
+      const payload = { name: document.getElementById('f-name').value.trim(), desc: document.getElementById('f-desc').value.trim(), url: document.getElementById('f-link').value.trim(), status: document.getElementById('f-status').value, category: document.getElementById('f-category').value.trim() };
       if (!payload.name) { toast('Nome obrigatório', 'error'); return; }
-      const ref = db.ref('scripts').push();
-      await ref.set(payload);
-      toast('Script criado!');
-      closeModal();
+      await db.ref('scripts').push().set(payload);
+      toast('Script criado!'); closeModal();
     });
   });
 
+  /* Avisos */
   document.getElementById('add-aviso-btn')?.addEventListener('click', () => {
     openModal('Novo Aviso', avisoFormHTML());
     document.getElementById('f-submit').addEventListener('click', async () => {
       const text = document.getElementById('f-text').value.trim();
       const author = document.getElementById('f-author').value.trim();
       if (!text) { toast('Texto obrigatório', 'error'); return; }
-      const ref = db.ref('avisos').push();
-      await ref.set({ text, author, timestamp: Date.now() });
-      toast('Aviso criado!');
-      closeModal();
+      await db.ref('avisos').push().set({ text, author, timestamp: Date.now() });
+      toast('Aviso criado!'); closeModal();
     });
   });
 
-  document.getElementById('add-founder-btn')?.addEventListener('click', () => {
-    openModal('Novo Fundador', founderFormHTML());
+  /* Nova Equipe */
+  document.getElementById('add-team-btn')?.addEventListener('click', () => {
+    openModal('Nova Equipe', teamFormHTML());
+  setupLogoPreview();
     document.getElementById('f-submit').addEventListener('click', async () => {
-      const payload = {
-        name: document.getElementById('f-name').value.trim(),
-        role: document.getElementById('f-role').value.trim(),
-        avatar: document.getElementById('f-avatar').value.trim()
-      };
-      if (!payload.name) { toast('Nome obrigatório', 'error'); return; }
-      const ref = db.ref('founders').push();
-      await ref.set(payload);
-      toast('Fundador criado!');
-      closeModal();
+      const name = document.getElementById('f-tname').value.trim();
+      if (!name) { toast('Nome obrigatório', 'error'); return; }
+      await db.ref('teams').push().set({
+        name,
+        icon: document.getElementById('f-ticon').value.trim() || '',
+        link: document.getElementById('f-tlink').value.trim(),
+        order: parseInt(document.getElementById('f-torder').value) || 99,
+        members: {}
+      });
+      toast('Equipe criada!'); closeModal();
     });
   });
 }
 
+/* ══════════════════════════════════════════
+   ALERTA GLOBAL
+══════════════════════════════════════════ */
 function initAlerta() {
   db.ref('avisoGlobal').once('value', snap => {
     const data = snap.val() || {};
@@ -312,7 +437,6 @@ function initAlerta() {
     if (inp) inp.value = data.text || '';
     if (chk) chk.checked = !!data.active;
   });
-
   document.getElementById('save-alerta-btn')?.addEventListener('click', async () => {
     const text = document.getElementById('alerta-text').value.trim();
     const active = document.getElementById('alerta-active').checked;
@@ -321,10 +445,12 @@ function initAlerta() {
   });
 }
 
+/* ══════════════════════════════════════════
+   MANUTENÇÃO
+══════════════════════════════════════════ */
 function initMaintenance() {
   const indicator = document.getElementById('maint-indicator');
   const statusText = document.getElementById('maint-status-text');
-
   db.ref('maintenance').on('value', snap => {
     const data = snap.val() || {};
     const isOn = !!data.active;
@@ -337,7 +463,6 @@ function initMaintenance() {
       statusText.textContent = isOn ? 'Manutenção ATIVA — site inacessível para visitantes' : 'Site online e acessível';
     }
   });
-
   document.getElementById('save-maint-btn')?.addEventListener('click', async () => {
     const active = document.getElementById('maint-active').checked;
     const message = document.getElementById('maint-message').value.trim();
@@ -347,25 +472,57 @@ function initMaintenance() {
   });
 }
 
+/* ══════════════════════════════════════════
+   TEMA
+══════════════════════════════════════════ */
+function updateTemaUI(current) {
+  const nameEl = document.getElementById('tema-current-name');
+  if (nameEl) nameEl.textContent = current === 'halloween' ? '🎃 Halloween' : 'Padrão (Roxo)';
+  document.querySelectorAll('.tema-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tema === current));
+}
+
+function initTema() {
+  db.ref('theme').on('value', snap => {
+    const data = snap.val();
+    const current = (data && data.active && data.name) ? data.name : 'default';
+    updateTemaUI(current);
+  });
+  document.querySelectorAll('.tema-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const tema = btn.dataset.tema;
+      await db.ref('theme').set({ name: tema, active: tema !== 'default' });
+      updateTemaUI(tema);
+      toast(tema === 'halloween' ? '🎃 Tema Halloween ativado!' : 'Tema padrão ativado!');
+    });
+  });
+}
+
+/* ══════════════════════════════════════════
+   LISTENERS FIREBASE
+══════════════════════════════════════════ */
 function initListeners() {
   db.ref('scripts').on('value', snap => renderScriptsList(snap.val()));
   db.ref('avisos').on('value', snap => renderAvisosList(snap.val()));
-  db.ref('founders').on('value', snap => renderFoundersList(snap.val()));
+  db.ref('teams').on('value', snap => renderTeamsList(snap.val()));
 }
 
+/* ══════════════════════════════════════════
+   SIDEBAR TOGGLE
+══════════════════════════════════════════ */
 function initSidebarToggle() {
   const toggle = document.getElementById('sidebar-toggle');
   const sidebar = document.getElementById('sidebar');
   toggle?.addEventListener('click', () => sidebar?.classList.toggle('open'));
   document.addEventListener('click', e => {
     if (window.innerWidth <= 768 && sidebar?.classList.contains('open')) {
-      if (!sidebar.contains(e.target) && e.target !== toggle) {
-        sidebar.classList.remove('open');
-      }
+      if (!sidebar.contains(e.target) && e.target !== toggle) sidebar.classList.remove('open');
     }
   });
 }
 
+/* ══════════════════════════════════════════
+   LOGIN / AUTH
+══════════════════════════════════════════ */
 function initLogin() {
   document.getElementById('login-btn')?.addEventListener('click', async () => {
     const email = document.getElementById('login-email').value.trim();
@@ -379,11 +536,9 @@ function initLogin() {
       errEl.classList.remove('hidden');
     }
   });
-
   document.getElementById('login-password')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('login-btn')?.click();
   });
-
   document.getElementById('logout-btn')?.addEventListener('click', () => auth.signOut());
 }
 
@@ -411,31 +566,3 @@ auth.onAuthStateChanged(user => {
 });
 
 initLogin();
-
-function updateTemaUI(current) {
-  const nameEl = document.getElementById('tema-current-name');
-  if (nameEl) nameEl.textContent = current === 'halloween' ? '🎃 Halloween' : 'Padrão (Roxo)';
-  document.querySelectorAll('.tema-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tema === current);
-  });
-}
-
-function initTema() {
-  db.ref('theme').on('value', snap => {
-    const data = snap.val();
-    const current = (data && data.active && data.name) ? data.name : 'default';
-    updateTemaUI(current);
-  });
-
-  document.querySelectorAll('.tema-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const tema = btn.dataset.tema;
-      const isDefault = tema === 'default';
-      await db.ref('theme').set({ name: tema, active: !isDefault });
-      document.querySelectorAll('.tema-btn').forEach(b => b.classList.toggle('active', b.dataset.tema === tema));
-      const nameEl = document.getElementById('tema-current-name');
-      if (nameEl) nameEl.textContent = tema === 'halloween' ? '🎃 Halloween' : 'Padrão (Roxo)';
-      toast(tema === 'halloween' ? '🎃 Tema Halloween ativado!' : 'Tema padrão ativado!');
-    });
-  });
-}

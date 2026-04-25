@@ -17,14 +17,10 @@
 
   <div id="maintenance-screen" class="hidden">
     <div class="maintenance-inner">
-      <div class="maintenance-icon">
-        <i class="fas fa-wrench"></i>
-      </div>
+      <div class="maintenance-icon"><i class="fas fa-wrench"></i></div>
       <h1>Em Manutenção</h1>
       <p id="maintenance-msg">O site está passando por manutenção. Voltamos em breve!</p>
-      <div class="maintenance-dots">
-        <span></span><span></span><span></span>
-      </div>
+      <div class="maintenance-dots"><span></span><span></span><span></span></div>
     </div>
   </div>
 
@@ -61,7 +57,7 @@
         </a>
         <nav class="nav-links">
           <a href="#scripts">Scripts</a>
-          <a href="#founders">Equipe</a>
+          <a href="#equipes">Equipes</a>
           <a href="#sobre">Sobre</a>
           <a href="https://discord.gg/platformdestroyer" target="_blank" class="nav-discord"><i class="fab fa-discord"></i> Discord</a>
         </nav>
@@ -71,7 +67,7 @@
       </div>
       <div class="mobile-nav" id="mobile-nav">
         <a href="#scripts" class="mobile-link">Scripts</a>
-        <a href="#founders" class="mobile-link">Equipe</a>
+        <a href="#equipes" class="mobile-link">Equipes</a>
         <a href="#sobre" class="mobile-link">Sobre mim</a>
         <a href="https://discord.gg/platformdestroyer" target="_blank" class="mobile-link">Discord</a>
       </div>
@@ -108,17 +104,11 @@
           </div>
 
           <div class="hero-cta reveal">
-            <a href="#scripts" class="btn-primary">
-              <i class="fas fa-code"></i> Ver Scripts
-            </a>
-            <a href="https://discord.gg/platformdestroyer" target="_blank" class="btn-ghost">
-              <i class="fab fa-discord"></i> Comunidade
-            </a>
+            <a href="#scripts" class="btn-primary"><i class="fas fa-code"></i> Ver Scripts</a>
+            <a href="https://discord.gg/platformdestroyer" target="_blank" class="btn-ghost"><i class="fab fa-discord"></i> Comunidade</a>
           </div>
         </div>
-        <div class="scroll-indicator">
-          <span></span>
-        </div>
+        <div class="scroll-indicator"><span></span></div>
       </section>
 
       <section id="avisos" class="section-announcements">
@@ -141,72 +131,80 @@
         </div>
       </section>
 
-      <section id="founders" class="section-founders">
+      
+      <section id="equipes" class="section-teams">
         <div class="container">
           <div class="section-header reveal">
             <span class="section-tag">Time</span>
-            <h2 class="section-title">Fundadores & Desenvolvedores</h2>
+            <h2 class="section-title">Equipes & Servidores</h2>
+            <p class="section-subtitle reveal">Conheça os times por trás do ClassScripts</p>
           </div>
-          <div id="founders-grid" class="founders-grid"></div>
+
+          
+          <div class="teams-tabs-wrapper reveal">
+            <div id="teams-tabs" class="teams-tabs"></div>
+          </div>
+
+          
+          <div id="teams-panel" class="teams-panel-container"></div>
         </div>
       </section>
     </main>
 
-
-      <section id="sobre" class="section-sobre">
-        <div class="container">
-          <div class="section-header reveal">
-            <span class="section-tag">Desenvolvedor</span>
-            <h2 class="section-title">Sobre mim</h2>
-          </div>
-          <div class="sobre-card reveal">
-            <div class="sobre-avatar-col">
-              <div class="sobre-avatar-wrap">
-                <img src="eu.png" alt="eri10pc" class="sobre-avatar" />
-                <div class="sobre-avatar-ring"></div>
-              </div>
-              <p class="sobre-handle">@eri10pc</p>
-              <div class="sobre-social-links">
-                <a href="https://discordapp.com/users/730899087825829888" target="_blank" class="sobre-social discord">
-                  <i class="fab fa-discord"></i>
-                </a>
-                <a href="https://www.instagram.com/eri10pc/" target="_blank" class="sobre-social instagram">
-                  <i class="fab fa-instagram"></i>
-                </a>
-              </div>
+    <section id="sobre" class="section-sobre">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="section-tag">Desenvolvedor</span>
+          <h2 class="section-title">Sobre mim</h2>
+        </div>
+        <div class="sobre-card reveal">
+          <div class="sobre-avatar-col">
+            <div class="sobre-avatar-wrap">
+              <img src="eu.png" alt="eri10pc" class="sobre-avatar" />
+              <div class="sobre-avatar-ring"></div>
             </div>
-            <div class="sobre-content">
-              <div class="sobre-badges">
-                <span class="sobre-badge"><i class="fas fa-code"></i> Programador</span>
-                <span class="sobre-badge"><i class="fas fa-calendar"></i> 3 anos de exp.</span>
-                <span class="sobre-badge"><i class="fas fa-user"></i> 16 anos</span>
+            <p class="sobre-handle">@eri10pc</p>
+            <div class="sobre-social-links">
+              <a href="https://discordapp.com/users/730899087825829888" target="_blank" class="sobre-social discord">
+                <i class="fab fa-discord"></i>
+              </a>
+              <a href="https://www.instagram.com/eri10pc/" target="_blank" class="sobre-social instagram">
+                <i class="fab fa-instagram"></i>
+              </a>
+            </div>
+          </div>
+          <div class="sobre-content">
+            <div class="sobre-badges">
+              <span class="sobre-badge"><i class="fas fa-code"></i> Programador</span>
+              <span class="sobre-badge"><i class="fas fa-calendar"></i> 3 anos de exp.</span>
+              <span class="sobre-badge"><i class="fas fa-user"></i> 16 anos</span>
+            </div>
+            <p class="sobre-bio">
+              Sou programador há <strong>3 anos</strong>, com <strong>16 anos</strong>, focado em desenvolver soluções eficientes através da tecnologia. Tenho interesse especial em <strong>automação de tarefas</strong> e <strong>produtividade</strong>, buscando sempre criar sistemas que otimizem processos e facilitem o dia a dia. Com ajuda do meu braço direito <a href="https://claude.ai" target="_blank" class="sobre-link">Claude.ai</a>. Admiro muito os desenvolvedores que criam scripts para <strong>facilitar a vida dos estudantes</strong> — acredito que tecnologia bem aplicada pode transformar a experiência de quem está aprendendo.
+            </p>
+            <blockquote class="sobre-quote">
+              <i class="fas fa-quote-left sobre-quote-icon"></i>
+              <p>"Cada tarefa que você automatiza é tempo que você recupera para investir em algo maior."</p>
+              <cite>— eri10pc</cite>
+            </blockquote>
+            <div class="sobre-stats">
+              <div class="sobre-stat">
+                <span class="sobre-stat-num">3+</span>
+                <span class="sobre-stat-label">anos codando</span>
               </div>
-              <p class="sobre-bio">
-                Sou programador há <strong>3 anos</strong>, com <strong>16 anos</strong>, focado em desenvolver soluções eficientes através da tecnologia. Tenho interesse especial em <strong>automação de tarefas</strong> e <strong>produtividade</strong>, buscando sempre criar sistemas que otimizem processos e facilitem o dia a dia. Com ajuda do meu braço direito <a href="https://claude.ai" target="_blank" class="sobre-link">Claude.ai</a>. Admiro muito os desenvolvedores que criam scripts para <strong>facilitar a vida dos estudantes</strong> — acredito que tecnologia bem aplicada pode transformar a experiência de quem está aprendendo.
-              </p>
-              <blockquote class="sobre-quote">
-                <i class="fas fa-quote-left sobre-quote-icon"></i>
-                <p>"Cada tarefa que você automatiza é tempo que você recupera para investir em algo maior."</p>
-                <cite>— eri10pc</cite>
-              </blockquote>
-              <div class="sobre-stats">
-                <div class="sobre-stat">
-                  <span class="sobre-stat-num">3+</span>
-                  <span class="sobre-stat-label">anos codando</span>
-                </div>
-                <div class="sobre-stat">
-                  <span class="sobre-stat-num">16</span>
-                  <span class="sobre-stat-label">anos de idade</span>
-                </div>
-                <div class="sobre-stat">
-                  <span class="sobre-stat-num">∞</span>
-                  <span class="sobre-stat-label">café consumido</span>
-                </div>
+              <div class="sobre-stat">
+                <span class="sobre-stat-num">16</span>
+                <span class="sobre-stat-label">anos de idade</span>
+              </div>
+              <div class="sobre-stat">
+                <span class="sobre-stat-num">∞</span>
+                <span class="sobre-stat-label">café consumido</span>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
     <footer>
       <div class="container footer-inner">
