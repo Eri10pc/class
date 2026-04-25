@@ -14,7 +14,6 @@ const auth = firebase.auth();
 
 let currentTab = 'scripts';
 
-/* ── TOAST ── */
 function toast(msg, type = 'success') {
   const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark' };
   const colors = { success: '#10b981', error: '#ef4444' };
@@ -25,7 +24,6 @@ function toast(msg, type = 'success') {
   setTimeout(() => el.remove(), 3500);
 }
 
-/* ── MODAL ── */
 function openModal(title, bodyHTML) {
   document.getElementById('admin-modal-title').textContent = title;
   document.getElementById('admin-modal-body').innerHTML = bodyHTML;
@@ -35,7 +33,6 @@ function closeModal() {
   document.getElementById('admin-modal-backdrop').classList.add('hidden');
 }
 
-/* ── HELPERS ── */
 function statusBadge(status) {
   const map = { ativo: 'Ativo', offline: 'Offline', manutencao: 'Manutenção' };
   return `<span class="item-status ${status}">${map[status] || status}</span>`;
@@ -45,9 +42,6 @@ function normStatus(s) {
   return r.includes('manu') ? 'manutencao' : r === 'offline' ? 'offline' : 'ativo';
 }
 
-/* ══════════════════════════════════════════
-   SCRIPTS
-══════════════════════════════════════════ */
 function renderScriptsList(scripts) {
   const container = document.getElementById('scripts-list');
   if (!container) return;
@@ -112,9 +106,6 @@ window.editScript = function(key) {
   });
 };
 
-/* ══════════════════════════════════════════
-   AVISOS
-══════════════════════════════════════════ */
 function renderAvisosList(avisos) {
   const container = document.getElementById('avisos-list');
   if (!container) return;
@@ -159,9 +150,6 @@ window.editAviso = function(key) {
   });
 };
 
-/* ══════════════════════════════════════════
-   TEAMS — EQUIPES & MEMBROS
-══════════════════════════════════════════ */
 let teamsCache = {};
 
 function renderTeamsList(teams) {
@@ -350,11 +338,6 @@ function setupAvatarPreview() {
   });
 }
 
-
-
-/* ══════════════════════════════════════════
-   GENERIC DELETE
-══════════════════════════════════════════ */
 window.deleteItem = function(collection, key) {
   if (!confirm('Tem certeza que deseja deletar este item?')) return;
   db.ref(`${collection}/${key}`).remove()
@@ -362,9 +345,6 @@ window.deleteItem = function(collection, key) {
     .catch(() => toast('Erro ao deletar', 'error'));
 };
 
-/* ══════════════════════════════════════════
-   TABS
-══════════════════════════════════════════ */
 function initTabs() {
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -380,11 +360,8 @@ function initTabs() {
   });
 }
 
-/* ══════════════════════════════════════════
-   ADD BUTTONS
-══════════════════════════════════════════ */
 function initAddButtons() {
-  /* Scripts */
+  
   document.getElementById('add-script-btn')?.addEventListener('click', () => {
     openModal('Novo Script', scriptFormHTML());
     document.getElementById('f-submit').addEventListener('click', async () => {
@@ -395,7 +372,7 @@ function initAddButtons() {
     });
   });
 
-  /* Avisos */
+  
   document.getElementById('add-aviso-btn')?.addEventListener('click', () => {
     openModal('Novo Aviso', avisoFormHTML());
     document.getElementById('f-submit').addEventListener('click', async () => {
@@ -407,7 +384,7 @@ function initAddButtons() {
     });
   });
 
-  /* Nova Equipe */
+  
   document.getElementById('add-team-btn')?.addEventListener('click', () => {
     openModal('Nova Equipe', teamFormHTML());
   setupLogoPreview();
@@ -426,9 +403,6 @@ function initAddButtons() {
   });
 }
 
-/* ══════════════════════════════════════════
-   ALERTA GLOBAL
-══════════════════════════════════════════ */
 function initAlerta() {
   db.ref('avisoGlobal').once('value', snap => {
     const data = snap.val() || {};
@@ -445,9 +419,6 @@ function initAlerta() {
   });
 }
 
-/* ══════════════════════════════════════════
-   MANUTENÇÃO
-══════════════════════════════════════════ */
 function initMaintenance() {
   const indicator = document.getElementById('maint-indicator');
   const statusText = document.getElementById('maint-status-text');
@@ -472,9 +443,6 @@ function initMaintenance() {
   });
 }
 
-/* ══════════════════════════════════════════
-   TEMA
-══════════════════════════════════════════ */
 function updateTemaUI(current) {
   const nameEl = document.getElementById('tema-current-name');
   if (nameEl) nameEl.textContent = current === 'halloween' ? '🎃 Halloween' : 'Padrão (Roxo)';
@@ -497,18 +465,12 @@ function initTema() {
   });
 }
 
-/* ══════════════════════════════════════════
-   LISTENERS FIREBASE
-══════════════════════════════════════════ */
 function initListeners() {
   db.ref('scripts').on('value', snap => renderScriptsList(snap.val()));
   db.ref('avisos').on('value', snap => renderAvisosList(snap.val()));
   db.ref('teams').on('value', snap => renderTeamsList(snap.val()));
 }
 
-/* ══════════════════════════════════════════
-   SIDEBAR TOGGLE
-══════════════════════════════════════════ */
 function initSidebarToggle() {
   const toggle = document.getElementById('sidebar-toggle');
   const sidebar = document.getElementById('sidebar');
@@ -520,9 +482,6 @@ function initSidebarToggle() {
   });
 }
 
-/* ══════════════════════════════════════════
-   LOGIN / AUTH
-══════════════════════════════════════════ */
 function initLogin() {
   document.getElementById('login-btn')?.addEventListener('click', async () => {
     const email = document.getElementById('login-email').value.trim();

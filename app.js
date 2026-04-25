@@ -355,6 +355,7 @@ async function init() {
 
   setTimeout(initReveal, 200);
   initCardGlow();
+  initLanyard();
 }
 
 function initCardGlowIn(container) {
@@ -526,6 +527,81 @@ function checkTheme() {
   });
 }
 
+
+const DISCORD_ID = '730899087825829888';
+
+function initLanyard() {
+  const dot = document.getElementById('ds-dot');
+  const text = document.getElementById('ds-text');
+  const activity = document.getElementById('discord-activity');
+  if (!dot || !text) return;
+
+  const STATUS_MAP = {
+    online: { label: 'Online', color: '#23d18b' },
+    idle: { label: 'Ausente', color: '#f0b429' },
+    dnd: { label: 'Não perturbe', color: '#ef4444' },
+    offline: { label: 'Offline', color: '#6b7280' },
+  };
+
+  function applyStatus(data) {
+    const s = STATUS_MAP[data.discord_status] || STATUS_MAP.offline;
+    dot.style.background = s.color;
+    dot.style.boxShadow = `0 0 6px ${s.color}`;
+    text.textContent = s.label;
+
+    const acts = (data.activities || []).filter(a => a.type !== 4);
+    if (acts.length && activity) {
+      const a = acts[0];
+      const name = a.name || '';
+      const detail = a.details || a.state || '';
+      const assets = a.assets;
+      const imgUrl = assets && assets.large_image
+        ? assets.large_image.startsWith('mp:external')
+          ? 'https://media.discordapp.net/' + assets.large_image.replace('mp:external/', '')
+          : `https://cdn.discordapp.com/app-assets/${a.application_id}/${assets.large_image}.png`
+        : null;
+
+      activity.classList.remove('hidden');
+      activity.innerHTML = `
+        <div class="discord-activity-inner">
+          ${imgUrl ? `<img src="${imgUrl}" class="discord-activity-img" alt="${name}" onerror="this.style.display='none'">` : ''}
+          <div class="discord-activity-info">
+            <span class="discord-activity-name">${name}</span>
+            ${detail ? `<span class="discord-activity-detail">${detail}</span>` : ''}
+          </div>
+        </div>`;
+    } else if (activity) {
+      activity.classList.add('hidden');
+      activity.innerHTML = '';
+    }
+  }
+
+  function connectWS() {
+    const ws = new WebSocket('wss://api.lanyard.rest/socket');
+    let heartbeat;
+
+    ws.onmessage = e => {
+      const msg = JSON.parse(e.data);
+      if (msg.op === 1) {
+        heartbeat = setInterval(() => ws.send(JSON.stringify({ op: 3 })), msg.d.heartbeat_interval);
+        ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: DISCORD_ID } }));
+      }
+      if ((msg.op === 0 && (msg.t === 'INIT_STATE' || msg.t === 'PRESENCE_UPDATE')) || msg.op === 1) {
+        if (msg.d && msg.d[DISCORD_ID]) applyStatus(msg.d[DISCORD_ID]);
+        else if (msg.d && msg.d.discord_status) applyStatus(msg.d);
+      }
+    };
+
+    ws.onclose = () => {
+      clearInterval(heartbeat);
+      setTimeout(connectWS, 5000);
+    };
+
+    ws.onerror = () => ws.close();
+  }
+
+  connectWS();
+}
 checkMaintenance();
 checkTheme();
 window.addEventListener('DOMContentLoaded', init);
