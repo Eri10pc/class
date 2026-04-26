@@ -3,6 +3,7 @@
   const NEKO_SIZE = 32;
   const SPEED = 3;
   const SPRITE_PATH = 'neko/';
+  const WAKE_DELAY = 1000;
 
   const SPRITES = {
     idle:       ['awake'],
@@ -23,7 +24,8 @@
   let frameIndex = 0;
   let frameTimer = 0;
   let currentSprite = 'idle';
-  let idleTimer = 0;
+  let following = false;
+  let wakeTimeout = null;
 
   const neko = document.createElement('div');
   neko.id = 'neko-cursor';
@@ -51,37 +53,47 @@
   document.addEventListener('mousemove', e => {
     mouseX = e.clientX;
     mouseY = e.clientY;
+
+    if (!following) {
+      clearTimeout(wakeTimeout);
+      wakeTimeout = setTimeout(() => {
+        following = true;
+      }, WAKE_DELAY);
+    }
   });
 
   function getDirection(dx, dy) {
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    if (angle > -22.5 && angle <= 22.5)   return 'right';
-    if (angle > 22.5  && angle <= 67.5)   return 'downright';
-    if (angle > 67.5  && angle <= 112.5)  return 'down';
-    if (angle > 112.5 && angle <= 157.5)  return 'downleft';
-    if (angle > 157.5 || angle <= -157.5) return 'left';
+    if (angle > -22.5 && angle <= 22.5)    return 'right';
+    if (angle > 22.5  && angle <= 67.5)    return 'downright';
+    if (angle > 67.5  && angle <= 112.5)   return 'down';
+    if (angle > 112.5 && angle <= 157.5)   return 'downleft';
+    if (angle > 157.5 || angle <= -157.5)  return 'left';
     if (angle > -157.5 && angle <= -112.5) return 'upleft';
-    if (angle > -112.5 && angle <= -67.5) return 'up';
-    if (angle > -67.5 && angle <= -22.5)  return 'upright';
+    if (angle > -112.5 && angle <= -67.5)  return 'up';
+    if (angle > -67.5 && angle <= -22.5)   return 'upright';
     return 'right';
   }
 
   function tick() {
-    const dx = mouseX - nekoX;
-    const dy = mouseY - nekoY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
     frameTimer++;
 
-    if (dist > SPEED + 2) {
-      idleTimer = 0;
-      const step = Math.min(SPEED, dist);
-      nekoX += (dx / dist) * step;
-      nekoY += (dy / dist) * step;
-      currentSprite = getDirection(dx, dy);
-      if (frameTimer % 6 === 0) frameIndex++;
+    if (following) {
+      const dx = mouseX - nekoX;
+      const dy = mouseY - nekoY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist > SPEED + 2) {
+        const step = Math.min(SPEED, dist);
+        nekoX += (dx / dist) * step;
+        nekoY += (dy / dist) * step;
+        currentSprite = getDirection(dx, dy);
+        if (frameTimer % 6 === 0) frameIndex++;
+      } else {
+        currentSprite = 'idle';
+        frameIndex = 0;
+      }
     } else {
-      idleTimer++;
       currentSprite = 'idle';
       frameIndex = 0;
     }

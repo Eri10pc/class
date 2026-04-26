@@ -269,7 +269,7 @@ function checkAlertBanner() {
     const data = snap.val();
     if (data && data.active && data.text && !alertShown) {
       alertShown = true;
-      document.getElementById('alert-text').textContent = data.text;
+      document.getElementById('alert-text').innerHTML = linkify(data.text);
       document.getElementById('alert-banner').classList.remove('hidden');
     } else if (!data || !data.active) {
       document.getElementById('alert-banner').classList.add('hidden');
