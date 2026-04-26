@@ -110,6 +110,14 @@ function renderScripts(scripts) {
   });
 }
 
+function linkify(text) {
+  const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+  return text.replace(urlRegex, url => {
+    const display = url.length > 40 ? url.slice(0, 40) + '…' : url;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="aviso-link">${display}</a>`;
+  });
+}
+
 function renderAvisos(avisos) {
   const grid = document.getElementById('avisos-grid');
   if (!grid) return;
@@ -128,7 +136,7 @@ function renderAvisos(avisos) {
         <span class="aviso-author"><i class="fas fa-bell" style="margin-right:5px"></i>${av.author || 'Admin'}</span>
         <span class="aviso-date">${date}</span>
       </div>
-      <p class="aviso-text">${av.text || ''}</p>
+      <p class="aviso-text">${linkify(av.text || '')}</p>
     `;
     grid.appendChild(card);
     setTimeout(() => observeReveal(card), 50);
@@ -548,17 +556,27 @@ function initLanyard() {
     const assets = a.assets;
     if (!assets || !assets.large_image) return null;
     const img = assets.large_image;
-    if (img.startsWith('mp:external/')) return 'https://media.discordapp.net/' + img.replace('mp:external/', '');
+    if (img.startsWith('mp:external/')) {
+      const url = 'https://media.discordapp.net/' + img.replace('mp:external/', '');
+      if (url.includes('rbxcdn') || url.includes('roblox') || url.includes('noFilter')) return null;
+      return url;
+    }
     if (img.startsWith('spotify:')) return 'https://i.scdn.co/image/' + img.replace('spotify:', '');
-    return `https://cdn.discordapp.com/app-assets/${a.application_id}/${img}.png`;
+    if (/^[0-9]+$/.test(img)) return `https://cdn.discordapp.com/app-assets/${a.application_id}/${img}.png`;
+    return null;
   }
 
   function getSmallUrl(a) {
     const assets = a.assets;
     if (!assets || !assets.small_image) return null;
     const img = assets.small_image;
-    if (img.startsWith('mp:external/')) return 'https://media.discordapp.net/' + img.replace('mp:external/', '');
-    return `https://cdn.discordapp.com/app-assets/${a.application_id}/${img}.png`;
+    if (img.startsWith('mp:external/')) {
+      const url = 'https://media.discordapp.net/' + img.replace('mp:external/', '');
+      if (url.includes('rbxcdn') || url.includes('roblox') || url.includes('noFilter')) return null;
+      return url;
+    }
+    if (/^[0-9]+$/.test(img)) return `https://cdn.discordapp.com/app-assets/${a.application_id}/${img}.png`;
+    return null;
   }
 
   function applyStatus(data) {
@@ -601,10 +619,11 @@ function initLanyard() {
       activity.classList.remove('hidden');
       activity.innerHTML = `
         <div class="discord-activity-inner">
-          <div class="discord-activity-art-wrap">
-            ${imgUrl ? `<img src="${imgUrl}" class="discord-activity-img" alt="${name}" onerror="this.style.display='none'">` : ''}
+          ${imgUrl || smallUrl ? `
+          <div class="discord-activity-art-wrap" id="ds-art-wrap">
+            ${imgUrl ? `<img src="${imgUrl}" class="discord-activity-img" alt="${name}" onerror="this.style.display='none'">` : '<div class="discord-activity-img-placeholder"></div>'}
             ${smallUrl ? `<img src="${smallUrl}" class="discord-activity-app-icon" alt="${name}" onerror="this.style.display='none'">` : ''}
-          </div>
+          </div>` : ''}
           <div class="discord-activity-info">
             <span class="discord-activity-app-label"><i class="fas fa-gamepad"></i> ${name}</span>
             ${detail ? `<span class="discord-activity-name">${detail}</span>` : ''}
