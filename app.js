@@ -597,7 +597,7 @@ function initLanyard() {
         <div class="discord-activity-inner spotify">
           <div class="discord-activity-art-wrap">
             ${albumArt ? `<img src="${albumArt}" class="discord-activity-img" alt="album" onerror="this.style.display='none'">` : ''}
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/168px-Spotify_logo_without_text.svg.png" class="discord-activity-app-icon spotify-icon" alt="Spotify">
+            <img src="https://open.spotifycdn.com/cdn/images/favicon32.b64ecc03.png" class="discord-activity-app-icon spotify-icon" alt="Spotify">
           </div>
           <div class="discord-activity-info">
             <span class="discord-activity-app-label"><i class="fas fa-music"></i> Spotify</span>
